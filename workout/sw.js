@@ -1,5 +1,5 @@
 // オフラインでも開けるように、アプリ本体だけキャッシュする
-const CACHE = 'workout-v1';
+const CACHE = 'workout-v2';
 const FILES = ['./', './index.html', './style.css', './app.js', './config.js', './manifest.webmanifest', './icon.svg', '../vendor/supabase/supabase.js'];
 const URLS = new Set(FILES.map((f) => new URL(f, self.registration.scope).href));
 

@@ -44,6 +44,7 @@
   let exercises = lsGet(LS.ex, null);      // [{name, last}]
   let settings = lsGet(LS.settings, {});
   let current = lsGet(LS.cur, null);       // 選択中の種目名
+  let viewDay = null;                      // 表示中の日(YYYY-MM-DD)。起動時にきょう
   if (!exercises) {
     exercises = DEFAULT_EX.map((name) => ({ name, last: 0 }));
     lsSet(LS.ex, exercises);
@@ -138,7 +139,8 @@
   // ---------- 記録の操作 ----------
   function addSet(ex, w, r) {
     const now = new Date();
-    const row = { id: uuid(), t: now.toISOString(), ex, w, r, note: '', upd: now.toISOString(), dirty: true };
+    const at = isToday() ? now : new Date(`${viewDay}T${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`);
+    const row = { id: uuid(), t: at.toISOString(), ex, w, r, note: '', upd: now.toISOString(), dirty: true };
     sets.push(row);
     saveSets();
     touchEx(ex, now.getTime());
@@ -168,12 +170,14 @@
   const sortedEx = () => exercises.slice().sort((a, b) => (b.last || 0) - (a.last || 0));
   const lastSetOf = (ex) => { const rows = live().filter((s) => s.ex === ex); return rows.length ? rows[rows.length - 1] : null; };
   const todayKey = () => dayKey(new Date());
+  const isToday = () => viewDay === todayKey();
+  const daySets = () => live().filter((s) => dayKey(new Date(s.t)) === viewDay);
   const todaySets = () => live().filter((s) => dayKey(new Date(s.t)) === todayKey());
+  const shiftDay = (key, n) => { const d = new Date(`${key}T12:00:00`); d.setDate(d.getDate() + n); return dayKey(d); };
 
   // 前回(きょう以外で最後にやった日)のサマリ
   function prevSummary(ex) {
-    const tk = todayKey();
-    const rows = live().filter((s) => s.ex === ex && dayKey(new Date(s.t)) !== tk);
+    const rows = live().filter((s) => s.ex === ex && dayKey(new Date(s.t)) < viewDay);
     if (!rows.length) return '';
     const lastDay = dayKey(new Date(rows[rows.length - 1].t));
     const day = rows.filter((s) => dayKey(new Date(s.t)) === lastDay);
@@ -195,6 +199,7 @@
     if (name && prefill) {
       const last = lastSetOf(name);
       if (last) { wIn.value = last.w; rIn.value = last.r; }
+      fitW();
     }
     renderChips();
     renderRecSub();
@@ -223,14 +228,17 @@
   }
 
   function renderRecSub() {
-    const n = current ? todaySets().filter((s) => s.ex === current).length : 0;
-    $('#rec-sub').textContent = current ? `${n + 1}セット目` : '';
+    const n = current ? daySets().filter((s) => s.ex === current).length : 0;
+    $('#rec-sub').textContent = current ? `${isToday() ? '' : `${fmtDay(viewDay)}に `}${n + 1}セット目` : '';
   }
 
+  function fitW() { $('#w-stepper').classList.toggle('long', String(wIn.value).length >= 5); }
+  wIn.addEventListener('input', fitW);
   $('#w-stepper').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-w]');
     if (!b) return;
     wIn.value = Math.max(0, Math.round((num(wIn.value) + Number(b.dataset.w)) * 100) / 100);
+    fitW();
   });
   $('.stepper.reps').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-r]');
@@ -290,14 +298,16 @@
         <span class="v"><b>${esc(fmtW(s.w))}</b><span>×</span><b>${s.r}</b></span>
         <span class="t">${hhmm(s.t)}</span>
         ${canDelete ? '<button type="button" class="x" aria-label="削除">×</button>' : '<span></span>'}
+        ${s.note ? `<span class="n">${esc(s.note)}</span>` : ''}
       </div>`).join('')}
     </div>`;
   }
   function renderToday() {
-    const rows = todaySets();
+    const rows = daySets();
     const el = $('#today-list');
+    $('#today-title').textContent = isToday() ? 'きょうの記録' : `${fmtDay(viewDay)}の記録`;
     if (!rows.length) {
-      el.innerHTML = '<p class="empty">まだなし。種目をえらんで「セット記録」を押すだけ。</p>';
+      el.innerHTML = `<p class="empty">${isToday() ? 'まだなし。種目をえらんで「セット記録」を押すだけ。' : 'この日の記録はありません。<br>記録するとこの日付で保存されます。'}</p>`;
       $('#today-sum').textContent = '';
       return;
     }
@@ -317,8 +327,68 @@
       return;
     }
     const use = ev.target.closest('[data-use]');
-    if (use) { selectEx(use.dataset.use); closePanels(); }
+    if (use) { selectEx(use.dataset.use); closePanels(); return; }
+    const row = ev.target.closest('.set');
+    if (row) openEdit(row.dataset.id);
   }
+
+  // ---------- 記録の編集 ----------
+  const editDlg = $('#edit-dialog');
+  let editingId = null;
+  function openEdit(id) {
+    const s = sets.find((x) => x.id === id && !x.del);
+    if (!s) return;
+    editingId = id;
+    const d = new Date(s.t);
+    $('#e-date').value = dayKey(d);
+    $('#e-time').value = hhmm(s.t);
+    const names = Array.from(new Set([...sortedEx().map((e) => e.name), s.ex]));
+    $('#e-ex').innerHTML = names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    $('#e-ex').value = s.ex;
+    $('#e-w').value = s.w;
+    $('#e-r').value = s.r;
+    $('#e-note').value = s.note || '';
+    editDlg.showModal();
+  }
+  $('#edit-close').addEventListener('click', () => editDlg.close());
+  editDlg.addEventListener('click', (ev) => { if (ev.target === editDlg) editDlg.close(); });
+  $('#edit-form').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const s = sets.find((x) => x.id === editingId);
+    if (!s) { editDlg.close(); return; }
+    const date = $('#e-date').value;
+    const time = $('#e-time').value;
+    const t = new Date(`${date}T${time || '12:00'}:00`);
+    if (!date || Number.isNaN(t.getTime())) { toast('日付か時刻がおかしい'); return; }
+    const r = Math.round(num($('#e-r').value));
+    if (r <= 0) { toast('回数を入れてね'); return; }
+    const old = new Date(s.t);
+    // 秒は元のまま(同じ分なら並び順を保つ)
+    t.setSeconds(dayKey(old) === date && hhmm(s.t) === time ? old.getSeconds() : 0);
+    s.t = t.toISOString();
+    s.ex = $('#e-ex').value || s.ex;
+    s.w = Math.max(0, num($('#e-w').value));
+    s.r = r;
+    s.note = $('#e-note').value.trim();
+    s.upd = new Date().toISOString();
+    s.dirty = true;
+    sets.sort((a, b) => a.t.localeCompare(b.t));
+    saveSets();
+    touchEx(s.ex, Math.max(exercises.find((e) => e.name === s.ex)?.last || 0, t.getTime()));
+    schedulePush();
+    editDlg.close();
+    renderAll();
+    toast('直した');
+  });
+  $('#edit-delete').addEventListener('click', () => {
+    const s = sets.find((x) => x.id === editingId);
+    editDlg.close();
+    if (!s) return;
+    const copy = { ...s };
+    removeSet(s.id);
+    renderAll();
+    toast(`${copy.ex} ${fmtW(copy.w)}×${copy.r} を消した`, { label: '元に戻す', fn: () => { if (!sets.some((r) => r.id === copy.id)) { sets.push({ ...copy, del: false, dirty: true }); saveSets(); } else restoreSet(copy.id); renderAll(); } });
+  });
   $('#today-list').addEventListener('click', onSetClick);
   $('#hist-list').addEventListener('click', onSetClick);
 
@@ -522,9 +592,28 @@
 
   // ---------- 全体 ----------
   function renderTop() {
-    const d = new Date();
-    $('#top-date').textContent = `${d.getMonth() + 1}/${d.getDate()}(${WD[d.getDay()]})`;
+    if (!viewDay) viewDay = todayKey();
+    const d = new Date(`${viewDay}T12:00:00`);
+    const diff = Math.round((d - new Date(`${todayKey()}T12:00:00`)) / 86400000);
+    $('#title').textContent = diff === 0 ? 'きょう' : diff === -1 ? 'きのう' : diff === 1 ? 'あした' : fmtDay(viewDay);
+    $('#top-date').textContent = diff === 0 || Math.abs(diff) === 1 ? fmtDay(viewDay) : (diff < 0 ? `${-diff}日前` : `${diff}日後`);
+    $('#day-pick').value = viewDay;
+    document.title = diff === 0 ? '筋トレ記録' : `${fmtDay(viewDay)} - 筋トレ記録`;
   }
+  function setDay(key) {
+    viewDay = key;
+    renderAll();
+  }
+  $('#day-prev').addEventListener('click', () => setDay(shiftDay(viewDay, -1)));
+  $('#day-next').addEventListener('click', () => setDay(shiftDay(viewDay, 1)));
+  $('#day-btn').addEventListener('click', () => {
+    if (!isToday()) { setDay(todayKey()); toast('きょうに戻った'); return; }
+    const p = $('#day-pick');
+    if (p.showPicker) { try { p.showPicker(); return; } catch { /* fallthrough */ } }
+    p.style.pointerEvents = 'auto'; p.focus(); p.click();
+  });
+  $('#day-pick').addEventListener('change', (ev) => { if (ev.target.value) setDay(ev.target.value); ev.target.style.pointerEvents = ''; });
+
   function renderAll() {
     renderTop();
     renderChips();
@@ -537,6 +626,7 @@
 
   // 起動:最後に使った種目を選んで、前回の重量・回数を入れておく
   (function init() {
+    viewDay = todayKey();
     ensureExercisesFromSets();
     const t = todaySets();
     const pick = current && exercises.some((e) => e.name === current) ? current
@@ -546,7 +636,7 @@
     setSync(syncOn() ? '' : undefined, syncOn() ? '…' : '');
     if (syncOn()) pull();
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') { renderTop(); startRest(); if (syncOn()) pull(); }
+      if (document.visibilityState === 'visible') { renderAll(); if (syncOn()) pull(); }
     });
     window.addEventListener('online', push);
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

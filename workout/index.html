@@ -17,8 +17,13 @@
 <body>
   <header class="top">
     <div class="top-left">
-      <h1 id="title">きょう</h1>
-      <span class="top-date" id="top-date"></span>
+      <button type="button" class="nav" id="day-prev" aria-label="前の日">‹</button>
+      <button type="button" class="day-btn" id="day-btn">
+        <h1 id="title">きょう</h1>
+        <span class="top-date" id="top-date"></span>
+      </button>
+      <input type="date" id="day-pick" class="day-pick" aria-label="日付をえらぶ">
+      <button type="button" class="nav" id="day-next" aria-label="次の日">›</button>
     </div>
     <div class="top-right">
       <span class="sync" id="sync" hidden></span>
@@ -68,9 +73,9 @@
     </section>
 
     <!-- きょうのログ -->
-    <section class="today" aria-label="きょうの記録">
+    <section class="today" aria-label="この日の記録">
       <div class="today-head">
-        <h2>きょうの記録</h2>
+        <h2 id="today-title">きょうの記録</h2>
         <span class="today-sum" id="today-sum"></span>
       </div>
       <div id="today-list" class="today-list"></div>
@@ -129,6 +134,30 @@
       <p class="note">記録はこの端末(ブラウザ)に保存されます。機種変更の前にCSVを書き出すか、Supabase同期を使ってください。</p>
     </div>
   </section>
+
+  <!-- 記録の編集 -->
+  <dialog class="sheet" id="edit-dialog" aria-labelledby="edit-title">
+    <form id="edit-form" method="dialog" novalidate>
+      <div class="sheet-head">
+        <h3 id="edit-title">記録を編集</h3>
+        <button type="button" class="icon-btn" id="edit-close" aria-label="閉じる">×</button>
+      </div>
+      <div class="row2">
+        <label class="field"><span>日付</span><input type="date" id="e-date" required></label>
+        <label class="field"><span>時刻</span><input type="time" id="e-time" required></label>
+      </div>
+      <label class="field"><span>種目</span><select id="e-ex"></select></label>
+      <div class="row2">
+        <label class="field"><span>重量 kg(0=自重)</span><input type="number" id="e-w" inputmode="decimal" step="0.5" min="0" max="999"></label>
+        <label class="field"><span>回数</span><input type="number" id="e-r" inputmode="numeric" step="1" min="1" max="999"></label>
+      </div>
+      <label class="field"><span>メモ</span><input type="text" id="e-note" maxlength="200" placeholder="きつかった、フォーム注意 など"></label>
+      <div class="row">
+        <button type="submit" class="tbtn strong grow">保存</button>
+        <button type="button" class="tbtn danger" id="edit-delete">削除</button>
+      </div>
+    </form>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
