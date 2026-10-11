@@ -210,33 +210,6 @@
       : '<span class="avatar avatar-empty av-xs">?</span><span>名前を登録</span>';
   }
 
-  function renderLatest() {
-    const el = $('#latest');
-    const c = catches[catches.length - 1];
-    if (!c) {
-      el.innerHTML = `<div class="latest-card latest-empty">
-        <span class="latest-media"><span class="latest-ph">${fishIcon('アオリイカ')}</span></span>
-        <span class="latest-body"><b>まだ誰も釣ってない</b><span class="latest-meta">一番乗りは誰だ</span></span>
-      </div>`;
-      return;
-    }
-    el.innerHTML = `<button type="button" class="latest-card" data-catch="${esc(c.id)}">
-      <span class="latest-media">${c.photo_url
-        ? `<img src="${esc(c.photo_url)}" alt="${esc(c.fish)}の写真">`
-        : `<span class="latest-ph latest-${fishKind(c.fish)}">${fishIcon(c.fish)}</span>`}</span>
-      <span class="latest-body">
-        <span class="latest-label">いちばん新しい1匹 ・ ${esc(fmtTime(c.created_at))}</span>
-        <span class="latest-fish">${fishIcon(c.fish)}${esc(c.fish)}${c.size_cm != null ? `<span class="mono">${esc(fmtSize(c.size_cm))}<small>cm</small></span>` : ''}</span>
-        <span class="latest-who">${avatarHtml(c.angler, 'av-sm')}<b>${esc(c.angler)}</b></span>
-        ${c.comment ? `<span class="latest-comment">「${esc(c.comment)}」</span>` : ''}
-        <span class="latest-meta">${esc(spotName(c.spot))}で</span>
-      </span>
-    </button>`;
-  }
-  $('#latest').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-catch]');
-    if (b) focusCatch(b.dataset.catch);
-  });
 
   // ---------- ポイントのタブ ----------
   function renderSpotTabs() {
@@ -329,9 +302,11 @@
       ? rows.map((r, i) => `
         <li ${r.id ? `data-catch="${esc(r.id)}"` : `data-angler="${esc(r.name)}"`}>
           <span class="rank-no">${i + 1}</span>
-          ${avatarHtml(r.name, 'av-md')}
+          <span class="rank-pic ${r.photo ? '' : 'rank-pic-none'}">
+            ${r.photo ? `<img class="rank-photo" src="${esc(r.photo)}" alt="${esc(r.name)}の釣果の写真" loading="lazy">` : '<span class="rank-nophoto">写真なし</span>'}
+            ${avatarHtml(r.name, 'rank-magnet')}
+          </span>
           <span class="rank-name">${esc(r.name)}<span class="rank-sub">${esc(r.sub)}</span></span>
-          ${r.photo ? `<span class="rank-photo-wrap"><img class="rank-photo" src="${esc(r.photo)}" alt="" loading="lazy"></span>` : '<span></span>'}
           <span class="rank-val">${esc(r.val)}<small>${r.unit}</small></span>
         </li>`).join('')
       : `<li class="rank-empty">${emptyMsg}</li>`;
@@ -667,7 +642,6 @@
   function renderAll(newId) {
     renderHeader();
     renderMeChip();
-    renderLatest();
     renderMarkers(newId);
     renderSpotTabs();
     renderRanking();

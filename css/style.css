@@ -70,38 +70,6 @@ h1, h2, h3 { margin: 0; }
 .hero-sub { margin-left: 10px; color: var(--ink-3); }
 .mode-note { margin: 14px 0 0; font-size: 12px; color: var(--ink-3); }
 
-/* ---------- いちばん新しい1匹(写真が主役) ---------- */
-.latest { margin-top: 20px; }
-.latest-card {
-  width: 100%; padding: 0; border: 0; background: none; text-align: left;
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px;
-}
-.latest-media {
-  display: block; width: calc(100% + 36px); margin: 0 -18px; aspect-ratio: 4 / 3; max-height: 62vh;
-  background: var(--sea-2); overflow: hidden;
-}
-.latest-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.latest-ph { width: 100%; height: 100%; display: grid; place-items: center; }
-.latest-ph .fish-ico { width: 34%; height: 60%; max-width: 160px; opacity: .9; }
-.latest-body { display: grid; gap: 2px; }
-.latest-label { font-size: 12px; color: var(--ink-3); }
-.latest-fish { display: flex; align-items: baseline; gap: 8px; font-size: 24px; font-weight: 900; line-height: 1.3; }
-.latest-fish .fish-ico { width: 24px; height: 24px; align-self: center; }
-.latest-fish .mono { color: var(--lamp); }
-.latest-fish small { font-size: 14px; color: var(--ink-2); margin-left: 1px; }
-.latest-who { display: flex; align-items: center; gap: 8px; font-size: 15px; margin-top: 2px; }
-.latest-comment { font-family: var(--hand); font-size: 20px; line-height: 1.4; margin-top: 2px; }
-.latest-meta { font-size: 13px; color: var(--ink-3); }
-.latest-empty { grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-.latest-empty .latest-media { width: 72px; height: 72px; margin: 0; aspect-ratio: 1; border-radius: 50%; }
-.latest-empty .latest-ph .fish-ico { width: 50%; height: 55%; }
-.latest-empty b { font-size: 17px; }
-@media (min-width: 760px) {
-  .latest-card:not(.latest-empty) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 28px; align-items: end; }
-  .latest-card:not(.latest-empty) .latest-media { width: 100%; margin: 0; border-radius: 4px; max-height: 420px; }
-  .latest-body { padding-bottom: 6px; }
-  .latest-fish { font-size: 30px; }
-}
 .mono { font-weight: 700; }
 
 /* ---------- レイアウト ---------- */
@@ -179,8 +147,8 @@ h1, h2, h3 { margin: 0; }
 
 .rank-list { list-style: none; margin: 8px 0 0; padding: 0; }
 .rank-list li {
-  display: grid; grid-template-columns: 34px 34px minmax(0, 1fr) auto auto; align-items: center; gap: 8px;
-  padding: 10px 2px; border-bottom: 2px dashed #c4c9d0;
+  display: grid; grid-template-columns: 30px 96px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  padding: 12px 2px; border-bottom: 2px dashed #c4c9d0;
 }
 .rank-list li:last-child { border-bottom: 0; }
 .rank-list li:nth-child(odd) { transform: rotate(-.6deg); }
@@ -200,12 +168,28 @@ h1, h2, h3 { margin: 0; }
 .rank-val { font-size: 26px; line-height: 1; color: var(--wb-blue); white-space: nowrap; }
 .rank-list li:nth-child(1) .rank-val { color: var(--wb-red); }
 .rank-val small { font-size: 14px; color: var(--wb-ink); margin-left: 1px; }
-.rank-photo-wrap { position: relative; display: block; transform: rotate(4deg); }
-.rank-list li:nth-child(even) .rank-photo-wrap { transform: rotate(-5deg); }
-.rank-photo { display: block; width: 40px; height: 40px; object-fit: cover; border: 3px solid #fff; box-shadow: 0 1px 4px #0004; }
-.rank-photo-wrap::after {
-  content: ""; position: absolute; left: 50%; top: -5px; width: 26px; height: 9px;
-  transform: translateX(-50%) rotate(-6deg); background: #ecd07ab0;
+/* 写真:テープで貼ったポラロイド+顔アイコンのマグネット */
+.rank-pic { position: relative; display: block; width: 96px; height: 96px; transform: rotate(3deg); }
+.rank-list li:nth-child(even) .rank-pic { transform: rotate(-4deg); }
+.rank-photo {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  border: 4px solid #fff; border-bottom-width: 12px; box-shadow: 0 2px 6px #0004; background: #fff;
+}
+.rank-pic:not(.rank-pic-none)::before {
+  content: ""; position: absolute; left: 50%; top: -7px; width: 40px; height: 12px; z-index: 1;
+  transform: translateX(-50%) rotate(-5deg); background: #ecd07ab0;
+}
+.rank-nophoto {
+  display: grid; place-items: center; width: 100%; height: 100%; font-size: 13px; color: #8b919b;
+  border: 2px dashed #b5bac2; border-radius: 4px;
+}
+.ranking .rank-magnet {
+  position: absolute; right: -8px; bottom: -6px; width: 34px; height: 34px; z-index: 2;
+  border: 2px solid var(--wb-ink); box-shadow: 0 2px 3px #0005; font-size: 14px;
+}
+@media (min-width: 960px) {
+  .rank-list li { grid-template-columns: 28px 84px minmax(0, 1fr) auto; }
+  .rank-pic { width: 84px; height: 84px; }
 }
 .rank-list li.rank-empty { display: block; transform: none; font-size: 17px; color: #626872; padding: 14px 2px; }
 
