@@ -27,7 +27,7 @@
     </div>
     <div class="top-right">
       <span class="sync" id="sync" hidden></span>
-      <button type="button" class="tbtn" id="btn-history">履歴</button>
+      <button type="button" class="tbtn" id="btn-history">履歴・CSV</button>
       <button type="button" class="tbtn" id="btn-settings" aria-label="設定">⚙</button>
     </div>
   </header>
@@ -87,11 +87,15 @@
     <header class="panel-head">
       <button type="button" class="tbtn" data-close-panel>← 戻る</button>
       <h2>履歴</h2>
-      <div class="panel-actions">
-        <button type="button" class="tbtn" id="csv-month">CSV(今月)</button>
-        <button type="button" class="tbtn strong" id="csv-all">CSV(全部)</button>
-      </div>
+      <span></span>
     </header>
+    <div class="csv-box">
+      <p class="csv-lead">CSVで書き出す <small>Excel・スプレッドシートで開けます</small></p>
+      <div class="row">
+        <button type="button" class="tbtn strong grow" id="csv-all">⬇ 全部</button>
+        <button type="button" class="tbtn grow" id="csv-month">⬇ 今月だけ</button>
+      </div>
+    </div>
     <div class="hist-filter">
       <select id="hist-ex" aria-label="種目でしぼる"><option value="">すべての種目</option></select>
     </div>
