@@ -563,3 +563,102 @@ a { color: var(--mustard); }
 .se-spot-no { font-family: var(--display); font-size: 26px; color: var(--mustard); }
 .se-spot-fields { display: grid; gap: 8px; }
 .se-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ---------- ホワイトボード風ランキング ---------- */
+.ranking.wb {
+  --ink: #23262d;
+  --ink-red: #d8433b;
+  --ink-blue: #2f63c8;
+  --ink-green: #1f8a57;
+  --wb-font: "Yomogi", "Zen Kaku Gothic New", sans-serif;
+  position: relative;
+  color: var(--ink);
+  font-family: var(--wb-font);
+  background:
+    radial-gradient(ellipse 60% 30% at 80% 18%, #e9ecef66, transparent 70%),
+    radial-gradient(ellipse 40% 22% at 15% 75%, #dfe3e855, transparent 70%),
+    linear-gradient(170deg, #fdfdfb, #f2f3f1);
+  border: 9px solid #c9ced6;
+  border-image: linear-gradient(160deg, #eef0f3, #aab1bc 45%, #dde1e6 70%, #9aa1ac) 1;
+  border-radius: 0;
+  box-shadow: 0 14px 30px #0009, inset 0 0 22px #00000012;
+  padding: 16px 16px 22px;
+  margin-bottom: 18px;
+}
+/* ペン置きトレー */
+.ranking.wb::after {
+  content: ""; position: absolute; left: 12%; right: 12%; bottom: -21px; height: 12px;
+  background: linear-gradient(#d6dae0, #9aa1ac); border-radius: 0 0 6px 6px; box-shadow: 0 4px 8px #0007;
+}
+/* トレーの上のマーカー */
+.ranking.wb::before {
+  content: ""; position: absolute; right: 18%; bottom: -16px; width: 64px; height: 8px; border-radius: 4px; z-index: 1;
+  background: linear-gradient(90deg, #d8433b 0 22%, #f4f4f4 22% 100%); box-shadow: -78px 0 0 0 #2f63c8, -76px 0 0 0 #2f63c8;
+}
+.ranking.wb .block-head h2 { letter-spacing: .04em; align-items: center; }
+.ranking.wb .step { color: #8a9099; font-family: var(--mono); }
+.wb-title {
+  font-family: var(--wb-font); font-weight: 400; font-size: 26px; color: var(--ink); letter-spacing: .08em;
+  position: relative; padding: 0 2px;
+}
+.wb-title::after {
+  content: ""; position: absolute; left: -2px; right: -6px; bottom: -3px; height: 8px;
+  border-bottom: 3px solid var(--ink-red); border-radius: 0 0 60% 40% / 0 0 100% 60%; transform: rotate(-1.5deg);
+}
+.ranking.wb .live { color: var(--ink-green); font-family: var(--wb-font); font-size: 14px; letter-spacing: .08em; }
+.ranking.wb .live::before { background: var(--ink-green); }
+
+/* タブ:選ぶと赤ペンで囲む */
+.ranking.wb #rank-tabs { display: flex; flex-wrap: nowrap; justify-content: space-between; gap: 2px; overflow: visible; padding: 4px 0; }
+.ranking.wb #rank-tabs button {
+  font-family: var(--wb-font); font-weight: 400; font-size: 14.5px; padding: 3px 6px !important; flex: 0 1 auto; color: #5d636d;
+  background: transparent; border: 2px solid transparent;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.ranking.wb #rank-tabs button[aria-selected="true"] {
+  color: var(--ink); background: transparent; border-color: var(--ink-red); transform: rotate(-2deg);
+}
+
+.ranking.wb .rank-list { gap: 0; margin-top: 10px; }
+.ranking.wb .rank-list li {
+  background: transparent; border-radius: 0; padding: 10px 4px;
+  border-bottom: 2px dashed #c3c8cf;
+  grid-template-columns: 34px 34px minmax(0, 1fr) auto auto;
+}
+.ranking.wb .rank-list li:last-child { border-bottom: 0; }
+.ranking.wb .rank-list li:nth-child(odd) { transform: rotate(-.6deg); }
+.ranking.wb .rank-list li:nth-child(even) { transform: rotate(.5deg); }
+
+/* 順位:手描きの丸 */
+.ranking.wb .rank-no,
+.ranking.wb .rank-list li:nth-child(n) .rank-no {
+  width: 32px; height: 30px; background: transparent; font-family: var(--wb-font); font-size: 20px;
+  color: var(--ink); border: 2.5px solid #8a9099;
+  border-radius: 50% 45% 55% 40% / 45% 55% 40% 50%; transform: rotate(-8deg);
+}
+.ranking.wb .rank-list li:nth-child(1) .rank-no { color: var(--ink-red); border-color: var(--ink-red); font-size: 22px; }
+.ranking.wb .rank-list li:nth-child(2) .rank-no { color: var(--ink-blue); border-color: var(--ink-blue); }
+.ranking.wb .rank-list li:nth-child(3) .rank-no { color: var(--ink-green); border-color: var(--ink-green); }
+.ranking.wb .rank-list li:nth-child(1) .rank-name::before { content: "👑"; font-size: 15px; margin-right: 4px; }
+
+.ranking.wb .avatar { border: 2px solid var(--ink); background: #fff; }
+.ranking.wb .avatar-empty { background: #fff; color: var(--ink); font-family: var(--wb-font); font-weight: 400; }
+.ranking.wb .rank-name { font-size: 20px; font-weight: 400; color: var(--ink); }
+.ranking.wb .rank-sub { font-family: var(--wb-font); font-size: 13px; color: #6b717b; }
+.ranking.wb .rank-val {
+  font-family: var(--wb-font); font-size: 26px; color: var(--ink-red); line-height: 1;
+}
+.ranking.wb .rank-list li:nth-child(n+2) .rank-val { color: var(--ink-blue); }
+.ranking.wb .rank-val small { font-family: var(--wb-font); color: var(--ink); font-size: 14px; }
+
+/* 写真:マスキングテープで貼った感じ */
+.rank-photo-wrap { position: relative; display: block; transform: rotate(4deg); }
+.ranking.wb .rank-list li:nth-child(even) .rank-photo-wrap { transform: rotate(-5deg); }
+.rank-photo-wrap .rank-photo {
+  display: block; width: 40px; height: 40px; border-radius: 1px; border: 3px solid #fff; box-shadow: 0 2px 5px #0004;
+}
+.rank-photo-wrap::after {
+  content: ""; position: absolute; left: 50%; top: -5px; width: 26px; height: 9px; transform: translateX(-50%) rotate(-6deg);
+  background: #f2d27aaa; box-shadow: 0 1px 1px #0001;
+}
+.ranking.wb .rank-empty { font-family: var(--wb-font); font-size: 17px; color: #5d636d; padding: 14px 4px; }

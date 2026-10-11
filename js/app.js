@@ -333,7 +333,7 @@
           <span class="rank-no">${i + 1}</span>
           ${avatarHtml(r.name, 'av-md')}
           <span class="rank-name">${esc(r.name)}<span class="rank-sub">${esc(r.sub)}</span></span>
-          ${r.photo ? `<img class="rank-photo" src="${esc(r.photo)}" alt="" loading="lazy">` : '<span></span>'}
+          ${r.photo ? `<span class="rank-photo-wrap"><img class="rank-photo" src="${esc(r.photo)}" alt="" loading="lazy"></span>` : '<span></span>'}
           <span class="rank-val">${esc(r.val)}<small>${r.unit}</small></span>
         </li>`).join('')
       : `<li class="rank-empty">${emptyMsg}</li>`;
