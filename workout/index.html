@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>筋トレ記録</title>
+  <meta name="description" content="開いてすぐ記録できる筋トレログ。CSV書き出し対応">
+  <meta name="theme-color" content="#111318">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="筋トレ">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="top-left">
+      <h1 id="title">きょう</h1>
+      <span class="top-date" id="top-date"></span>
+    </div>
+    <div class="top-right">
+      <span class="sync" id="sync" hidden></span>
+      <button type="button" class="tbtn" id="btn-history">履歴</button>
+      <button type="button" class="tbtn" id="btn-settings" aria-label="設定">⚙</button>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <!-- 種目 -->
+    <section class="ex-row" aria-label="種目">
+      <div class="chips" id="ex-chips"></div>
+    </section>
+
+    <!-- 入力 -->
+    <section class="entry" id="entry">
+      <div class="entry-head">
+        <span class="entry-ex" id="entry-ex">種目をえらぶ</span>
+        <span class="entry-prev" id="entry-prev"></span>
+      </div>
+
+      <div class="stepper" id="w-stepper">
+        <button type="button" class="step" data-w="-5">−5</button>
+        <button type="button" class="step" data-w="-2.5">−2.5</button>
+        <label class="val">
+          <input type="number" id="w" inputmode="decimal" step="0.5" min="0" max="999" value="20">
+          <span class="unit">kg</span>
+        </label>
+        <button type="button" class="step" data-w="2.5">+2.5</button>
+        <button type="button" class="step" data-w="5">+5</button>
+      </div>
+
+      <div class="stepper reps">
+        <button type="button" class="step" data-r="-1">−1</button>
+        <label class="val">
+          <input type="number" id="r" inputmode="numeric" step="1" min="0" max="999" value="10">
+          <span class="unit">回</span>
+        </label>
+        <button type="button" class="step" data-r="1">+1</button>
+      </div>
+
+      <button type="button" class="rec" id="rec">
+        <span class="rec-main">セット記録</span>
+        <span class="rec-sub" id="rec-sub"></span>
+      </button>
+      <div class="rest" id="rest" hidden>前のセットから <b id="rest-t">0:00</b></div>
+    </section>
+
+    <!-- きょうのログ -->
+    <section class="today" aria-label="きょうの記録">
+      <div class="today-head">
+        <h2>きょうの記録</h2>
+        <span class="today-sum" id="today-sum"></span>
+      </div>
+      <div id="today-list" class="today-list"></div>
+    </section>
+  </main>
+
+  <!-- 履歴 -->
+  <section class="panel" id="history" hidden>
+    <header class="panel-head">
+      <button type="button" class="tbtn" data-close-panel>← 戻る</button>
+      <h2>履歴</h2>
+      <div class="panel-actions">
+        <button type="button" class="tbtn" id="csv-month">CSV(今月)</button>
+        <button type="button" class="tbtn strong" id="csv-all">CSV(全部)</button>
+      </div>
+    </header>
+    <div class="hist-filter">
+      <select id="hist-ex" aria-label="種目でしぼる"><option value="">すべての種目</option></select>
+    </div>
+    <div id="hist-list" class="hist-list"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="panel" id="settings" hidden>
+    <header class="panel-head">
+      <button type="button" class="tbtn" data-close-panel>← 戻る</button>
+      <h2>設定</h2>
+      <span></span>
+    </header>
+    <div class="set-body">
+      <h3>種目</h3>
+      <p class="note">タップで削除。記録は消えません。</p>
+      <div class="chips wrap" id="set-ex-list"></div>
+      <form class="add-ex" id="add-ex-form">
+        <input type="text" id="add-ex-name" maxlength="30" placeholder="種目を追加(例: インクラインベンチ)">
+        <button type="submit" class="tbtn strong">追加</button>
+      </form>
+
+      <h3>Supabase 同期</h3>
+      <p class="note" id="sb-note"></p>
+      <label class="field">
+        <span>合言葉</span>
+        <input type="text" id="sb-pass" autocomplete="off" placeholder="setup時に決めた合言葉">
+      </label>
+      <div class="row">
+        <button type="button" class="tbtn strong" id="sb-save">保存して同期</button>
+        <button type="button" class="tbtn" id="sb-clear">同期をやめる</button>
+      </div>
+
+      <h3>データ</h3>
+      <div class="row">
+        <button type="button" class="tbtn" id="import-csv">CSVを読み込む</button>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+        <button type="button" class="tbtn danger" id="wipe">この端末の記録を全部消す</button>
+      </div>
+      <p class="note">記録はこの端末(ブラウザ)に保存されます。機種変更の前にCSVを書き出すか、Supabase同期を使ってください。</p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="../vendor/supabase/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
