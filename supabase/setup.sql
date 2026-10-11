@@ -18,6 +18,7 @@ create table if not exists public.catches (
 );
 
 alter table public.catches enable row level security;
+grant select on public.catches to anon, authenticated;
 
 -- 見るのは誰でもOK。書き込み・削除は下の関数(合言葉チェック付き)経由のみ。
 drop policy if exists "catches are readable" on public.catches;
