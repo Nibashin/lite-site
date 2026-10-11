@@ -14,15 +14,22 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <nav class="topnav">
+    <a href="./" aria-current="page">釣果ボード</a>
+    <a href="schedule.html">スケジュール</a>
+    <button type="button" class="me-chip" id="me-chip"></button>
+  </nav>
+
   <header class="hero">
     <div class="stars" aria-hidden="true"></div>
     <div class="moon" aria-hidden="true"></div>
     <p class="eyebrow">TATEYAMA NIGHT FISHING TRIP</p>
-    <h1>館山<br>夜釣り遠征</h1>
+    <h1 id="hero-title">館山<br>夜釣り遠征</h1>
     <div class="hero-meta">
-      <span class="date-pill">2026.10.16 FRI → 10.17 SAT</span>
+      <span class="date-pill" id="hero-date">2026.10.16 FRI → 10.17 SAT</span>
       <span class="hero-sub">釣果ボード</span>
     </div>
+    <section class="latest" id="latest" aria-label="最新の釣果"></section>
     <p class="mode-note" id="mode-note" hidden></p>
   </header>
 
@@ -38,8 +45,8 @@
 
     <section class="block spots" aria-labelledby="spots-title">
       <div class="block-head">
-        <h2 id="spots-title"><span class="step">STEP 3</span>ポイント</h2>
-        <span class="hint">順繰りに回ってみる</span>
+        <h2 id="spots-title"><span class="step" id="spots-step">STEP 3</span>ポイント</h2>
+        <span class="hint" id="spots-note">順繰りに回ってみる</span>
       </div>
       <div class="spot-tabs" id="spot-tabs" role="tablist"></div>
       <div class="map-wrap">
@@ -48,6 +55,7 @@
           <button type="button" class="chip-btn" id="layer-toggle">航空写真</button>
           <button type="button" class="chip-btn" id="locate-btn">現在地</button>
         </div>
+        <button type="button" class="chip-btn save-view" id="save-view">ここを初期位置にする</button>
         <div class="pick-banner" id="pick-banner" hidden>
           <span>釣れた場所をタップ</span>
           <button type="button" id="pick-cancel">やめる</button>
@@ -68,30 +76,29 @@
 
   <footer class="foot">
     <p>地図・航空写真：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル</a></p>
-    <p class="goal"><span>GOAL</span>午前中 終了予定</p>
+    <p class="goal"><span>GOAL</span><span id="goal-text">午前中 終了予定</span></p>
   </footer>
 
   <button type="button" class="rank-bar" id="rank-bar" aria-label="ランキングを見る" hidden></button>
   <button type="button" class="fab" id="fab"><span aria-hidden="true">＋</span>釣った！</button>
 
+  <!-- 釣果の登録 -->
   <dialog class="sheet" id="catch-dialog" aria-labelledby="dialog-title">
     <form id="catch-form" method="dialog" novalidate>
       <div class="sheet-head">
         <h3 id="dialog-title">釣果を登録</h3>
-        <button type="button" class="icon-btn" id="dialog-close" aria-label="閉じる">×</button>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      </div>
+
+      <div class="who-row">
+        <span class="who" id="who"></span>
+        <button type="button" class="link-btn" id="who-change">変更</button>
       </div>
 
       <div class="field">
         <span class="label">ポイント</span>
         <div class="seg seg-wrap" id="form-spot"></div>
-        <p class="tiny" id="form-pos"></p>
       </div>
-
-      <label class="field">
-        <span class="label">名前</span>
-        <input type="text" name="angler" id="f-angler" maxlength="20" autocomplete="nickname" list="angler-list" required placeholder="たけし">
-        <datalist id="angler-list"></datalist>
-      </label>
 
       <fieldset class="field">
         <legend class="label">釣った魚</legend>
@@ -110,20 +117,48 @@
 
       <div class="field">
         <span class="label">写真</span>
-        <label class="photo-drop" id="photo-drop">
+        <label class="photo-drop">
           <input type="file" accept="image/*" id="f-photo">
           <img id="photo-preview" alt="" hidden>
           <span id="photo-hint">タップして写真をえらぶ</span>
         </label>
       </div>
 
-      <label class="field" id="pass-field" hidden>
-        <span class="label">合言葉</span>
-        <input type="text" name="pass" id="f-pass" autocomplete="off" placeholder="グループで決めた合言葉">
-      </label>
-
       <p class="form-error" id="form-error" role="alert"></p>
       <button type="submit" class="submit" id="submit-btn">登録する</button>
+    </form>
+  </dialog>
+
+  <!-- 名前とアイコン -->
+  <dialog class="sheet" id="profile-dialog" aria-labelledby="profile-title">
+    <form id="profile-form" method="dialog" novalidate>
+      <div class="sheet-head">
+        <h3 id="profile-title">名前とアイコン</h3>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      </div>
+      <p class="sheet-lead" id="profile-lead">このブラウザに覚えておくので、次からは入力いりません。</p>
+
+      <div class="profile-row">
+        <label class="avatar-pick" aria-label="アイコン画像をえらぶ">
+          <input type="file" accept="image/*" id="p-avatar">
+          <img id="p-avatar-img" alt="" hidden>
+          <span id="p-avatar-ph">＋<br>アイコン</span>
+        </label>
+        <label class="field grow">
+          <span class="label">名前</span>
+          <input type="text" id="p-name" maxlength="20" autocomplete="nickname" list="angler-list" placeholder="たけし">
+          <datalist id="angler-list"></datalist>
+        </label>
+      </div>
+      <p class="tiny-note" id="p-status"></p>
+
+      <label class="field" id="p-pass-field" hidden>
+        <span class="label">合言葉 <small>はじめての名前のときだけ</small></span>
+        <input type="text" id="p-pass" autocomplete="off" placeholder="グループで決めた合言葉">
+      </label>
+
+      <p class="form-error" id="p-error" role="alert"></p>
+      <button type="submit" class="submit" id="p-submit">これでOK</button>
     </form>
   </dialog>
 
@@ -132,6 +167,7 @@
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="vendor/supabase/supabase.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
