@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>館山 夜釣り遠征 釣果ボード</title>
+  <meta name="description" content="館山夜釣り遠征(2026.10.16-17)の釣果をみんなで報告し合うボード">
+  <meta name="theme-color" content="#0e1628">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e1628'/%3E%3Cpath d='M32 8 22 22v16c0 4 4 7 10 7s10-3 10-7V22z' fill='%23f1ece0'/%3E%3Cg stroke='%23f1ece0' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M25 45l-4 12M30 46l-1 12M34 46l1 12M39 45l4 12'/%3E%3C/g%3E%3Ccircle cx='28' cy='36' r='2' fill='%230e1628'/%3E%3Ccircle cx='36' cy='36' r='2' fill='%230e1628'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="stars" aria-hidden="true"></div>
+    <div class="moon" aria-hidden="true"></div>
+    <p class="eyebrow">TATEYAMA NIGHT FISHING TRIP</p>
+    <h1>館山<br>夜釣り遠征</h1>
+    <div class="hero-meta">
+      <span class="date-pill">2026.10.16 FRI → 10.17 SAT</span>
+      <span class="hero-sub">釣果ボード</span>
+    </div>
+    <p class="mode-note" id="mode-note" hidden></p>
+  </header>
+
+  <main class="layout">
+    <section class="block ranking" id="ranking" aria-labelledby="ranking-title">
+      <div class="block-head">
+        <h2 id="ranking-title"><span class="step">RANKING</span>ランキング</h2>
+        <span class="live" id="live-dot" hidden>LIVE</span>
+      </div>
+      <div class="seg" id="rank-tabs" role="tablist"></div>
+      <ol class="rank-list" id="rank-list"></ol>
+    </section>
+
+    <section class="block spots" aria-labelledby="spots-title">
+      <div class="block-head">
+        <h2 id="spots-title"><span class="step">STEP 3</span>ポイント</h2>
+        <span class="hint">順繰りに回ってみる</span>
+      </div>
+      <div class="spot-tabs" id="spot-tabs" role="tablist"></div>
+      <div class="map-wrap">
+        <div id="map" aria-label="釣り場の地図"></div>
+        <div class="map-tools">
+          <button type="button" class="chip-btn" id="layer-toggle">航空写真</button>
+          <button type="button" class="chip-btn" id="locate-btn">現在地</button>
+        </div>
+        <div class="pick-banner" id="pick-banner" hidden>
+          <span>釣れた場所をタップ</span>
+          <button type="button" id="pick-cancel">やめる</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="block feed-block" aria-labelledby="feed-title">
+      <div class="block-head">
+        <h2 id="feed-title"><span class="step">LOG</span>みんなの釣果</h2>
+        <select id="feed-filter" class="select-sm" aria-label="表示するポイント">
+          <option value="all">ぜんぶ</option>
+        </select>
+      </div>
+      <ol class="feed" id="feed"></ol>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>地図・航空写真：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル</a></p>
+    <p class="goal"><span>GOAL</span>午前中 終了予定</p>
+  </footer>
+
+  <button type="button" class="rank-bar" id="rank-bar" aria-label="ランキングを見る" hidden></button>
+  <button type="button" class="fab" id="fab"><span aria-hidden="true">＋</span>釣った！</button>
+
+  <dialog class="sheet" id="catch-dialog" aria-labelledby="dialog-title">
+    <form id="catch-form" method="dialog" novalidate>
+      <div class="sheet-head">
+        <h3 id="dialog-title">釣果を登録</h3>
+        <button type="button" class="icon-btn" id="dialog-close" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="field">
+        <span class="label">ポイント</span>
+        <div class="seg seg-wrap" id="form-spot"></div>
+        <p class="tiny" id="form-pos"></p>
+      </div>
+
+      <label class="field">
+        <span class="label">名前</span>
+        <input type="text" name="angler" id="f-angler" maxlength="20" autocomplete="nickname" list="angler-list" required placeholder="たけし">
+        <datalist id="angler-list"></datalist>
+      </label>
+
+      <fieldset class="field">
+        <legend class="label">釣った魚</legend>
+        <div class="fish-grid" id="fish-grid"></div>
+      </fieldset>
+
+      <label class="field">
+        <span class="label">サイズ <small>cm(イカは胴長)・わかれば</small></span>
+        <input type="number" name="size" id="f-size" inputmode="decimal" min="0.1" max="299" step="0.1" placeholder="25">
+      </label>
+
+      <label class="field">
+        <span class="label">ひとこと</span>
+        <input type="text" name="comment" id="f-comment" maxlength="200" placeholder="きたーーー！">
+      </label>
+
+      <div class="field">
+        <span class="label">写真</span>
+        <label class="photo-drop" id="photo-drop">
+          <input type="file" accept="image/*" id="f-photo">
+          <img id="photo-preview" alt="" hidden>
+          <span id="photo-hint">タップして写真をえらぶ</span>
+        </label>
+      </div>
+
+      <label class="field" id="pass-field" hidden>
+        <span class="label">合言葉</span>
+        <input type="text" name="pass" id="f-pass" autocomplete="off" placeholder="グループで決めた合言葉">
+      </label>
+
+      <p class="form-error" id="form-error" role="alert"></p>
+      <button type="submit" class="submit" id="submit-btn">登録する</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
