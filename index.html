@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e1628'/%3E%3Cpath d='M32 8 22 22v16c0 4 4 7 10 7s10-3 10-7V22z' fill='%23f1ece0'/%3E%3Cg stroke='%23f1ece0' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M25 45l-4 12M30 46l-1 12M34 46l1 12M39 45l4 12'/%3E%3C/g%3E%3Ccircle cx='28' cy='36' r='2' fill='%230e1628'/%3E%3Ccircle cx='36' cy='36' r='2' fill='%230e1628'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Dela+Gothic+One&family=Yomogi&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yomogi&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -21,14 +21,8 @@
   </nav>
 
   <header class="hero">
-    <div class="stars" aria-hidden="true"></div>
-    <div class="moon" aria-hidden="true"></div>
-    <p class="eyebrow">TATEYAMA NIGHT FISHING TRIP</p>
     <h1 id="hero-title">館山<br>夜釣り遠征</h1>
-    <div class="hero-meta">
-      <span class="date-pill" id="hero-date">2026.10.16 FRI → 10.17 SAT</span>
-      <span class="hero-sub">釣果ボード</span>
-    </div>
+    <p class="hero-date"><span id="hero-date">2026.10.16 FRI → 10.17 SAT</span></p>
     <section class="latest" id="latest" aria-label="最新の釣果"></section>
     <p class="mode-note" id="mode-note" hidden></p>
   </header>
@@ -36,7 +30,7 @@
   <main class="layout">
     <section class="block ranking wb" id="ranking" aria-labelledby="ranking-title">
       <div class="block-head">
-        <h2 id="ranking-title"><span class="step">RANKING</span><span class="wb-title">ランキング</span></h2>
+        <h2 id="ranking-title"><span class="wb-title">釣果ランキング</span></h2>
         <span class="live" id="live-dot" hidden>LIVE</span>
       </div>
       <div class="seg" id="rank-tabs" role="tablist"></div>
@@ -45,7 +39,7 @@
 
     <section class="block spots" aria-labelledby="spots-title">
       <div class="block-head">
-        <h2 id="spots-title"><span class="step" id="spots-step">STEP 3</span>ポイント</h2>
+        <h2 id="spots-title">ポイント</h2>
         <span class="hint" id="spots-note">順繰りに回ってみる</span>
       </div>
       <div class="spot-tabs" id="spot-tabs" role="tablist"></div>
@@ -65,7 +59,7 @@
 
     <section class="block feed-block" aria-labelledby="feed-title">
       <div class="block-head">
-        <h2 id="feed-title"><span class="step">LOG</span>みんなの釣果</h2>
+        <h2 id="feed-title">みんなの釣果</h2>
         <select id="feed-filter" class="select-sm" aria-label="表示するポイント">
           <option value="all">ぜんぶ</option>
         </select>
@@ -76,7 +70,7 @@
 
   <footer class="foot">
     <p>地図・航空写真：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル</a></p>
-    <p class="goal"><span>GOAL</span><span id="goal-text">午前中 終了予定</span></p>
+    <p class="goal">終わり：<span id="goal-text">午前中 終了予定</span></p>
   </footer>
 
   <button type="button" class="rank-bar" id="rank-bar" aria-label="ランキングを見る" hidden></button>

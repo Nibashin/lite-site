@@ -24,7 +24,7 @@
     const title = sp > 0 ? `${esc(t.slice(0, sp))}<br>${esc(t.slice(sp + 1))}` : esc(t);
     const steps = s.steps.map((st, i) => `
       <section class="sv-step">
-        <h2 class="sv-step-title"><span class="step">STEP ${i + 1}</span>${esc(st.title)}</h2>
+        <h2 class="sv-step-title"><span class="step-no">${i + 1}</span>${esc(st.title)}</h2>
         <ol class="timeline">
           ${st.items.map((it) => `
             <li class="${it.hl ? 'hl' : ''}">
@@ -50,27 +50,21 @@
 
     root.innerHTML = `
       <header class="hero sv-hero">
-        <div class="stars" aria-hidden="true"></div>
-        <div class="moon" aria-hidden="true"></div>
-        <p class="eyebrow">TATEYAMA NIGHT FISHING TRIP</p>
         <h1>${title}</h1>
-        ${s.targets.length ? `<div class="sv-targets"><span class="step">TARGET</span>${s.targets.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div>` : ''}
-        <div class="hero-meta">
-          <span class="date-pill">${esc(s.date)}</span>
-          ${s.dateNote ? `<span class="hero-sub">${esc(s.dateNote)}</span>` : ''}
-        </div>
+        ${s.targets.length ? `<div class="sv-targets"><span class="sv-k">狙い</span>${s.targets.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div>` : ''}
+        <p class="hero-date"><span>${esc(s.date)}</span>${s.dateNote ? `<span class="hero-sub">${esc(s.dateNote)}</span>` : ''}</p>
       </header>
       <div class="sv-body">
         ${steps}
         <section class="sv-step">
           <div class="sv-step-head">
-            <h2 class="sv-step-title"><span class="step">STEP ${s.steps.length + 1}</span>ポイント</h2>
+            <h2 class="sv-step-title"><span class="step-no">${s.steps.length + 1}</span>ポイント</h2>
             ${s.spotsNote ? `<span class="hint">${esc(s.spotsNote)}</span>` : ''}
           </div>
           <ol class="sv-spots">${spots}</ol>
           <a class="sv-link" href="./">釣果ボードの地図を見る →</a>
         </section>
-        <section class="sv-goal"><span>GOAL</span>${esc(s.goal)}</section>
+        <section class="sv-goal"><span class="sv-k">終わり</span>${esc(s.goal)}</section>
       </div>`;
     bar.innerHTML = '<button type="button" class="fab sched-fab" id="edit-btn">編集する</button>';
   }
@@ -95,10 +89,10 @@
         ${s.steps.map((st, i) => `
           <section class="se-card">
             <div class="se-card-head">
-              <span class="step">STEP ${i + 1}</span>
-              <button type="button" class="link-btn danger" data-act="del-step" data-i="${i}">このSTEPを消す</button>
+              <b>${i + 1}つ目</b>
+              <button type="button" class="link-btn danger" data-act="del-step" data-i="${i}">この段階を消す</button>
             </div>
-            <label class="field"><span class="label">STEPの名前</span>${inp(`steps.${i}.title`, st.title)}</label>
+            <label class="field"><span class="label">段階の名前</span>${inp(`steps.${i}.title`, st.title)}</label>
             <ol class="se-items">
               ${st.items.map((it, j) => `
                 <li class="se-item">
@@ -119,10 +113,10 @@
             </ol>
             <button type="button" class="add-btn" data-act="add-item" data-i="${i}">＋ 予定を追加</button>
           </section>`).join('')}
-        <button type="button" class="add-btn add-step" data-act="add-step">＋ STEPを追加</button>
+        <button type="button" class="add-btn add-step" data-act="add-step">＋ 段階を追加</button>
 
         <section class="se-card">
-          <div class="se-card-head"><span class="step">STEP ${s.steps.length + 1}</span><b>ポイント</b></div>
+          <div class="se-card-head"><b>ポイント</b></div>
           <label class="field"><span class="label">ひとこと</span>${inp('spotsNote', s.spotsNote)}</label>
           ${s.spots.map((p, k) => `
             <div class="se-spot">
@@ -145,7 +139,7 @@
         </section>
 
         <section class="se-card">
-          <label class="field"><span class="label">GOAL</span>${inp('goal', s.goal)}</label>
+          <label class="field"><span class="label">終わり</span>${inp('goal', s.goal)}</label>
         </section>
       </div>`;
     bar.innerHTML = `
@@ -183,7 +177,7 @@
       case 'down': [items[j + 1], items[j]] = [items[j], items[j + 1]]; break;
       case 'add-step': draft.steps.push({ title: '', items: [{ time: '', title: '', sub: '', hl: false }] }); break;
       case 'del-step':
-        if (!confirm(`STEP ${i + 1} を消しますか？`)) return;
+        if (!confirm(`${i + 1}つ目の段階を消しますか？`)) return;
         draft.steps.splice(i, 1);
         break;
       default: return;

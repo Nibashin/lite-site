@@ -10,7 +10,7 @@
     { id: 'count', label: '釣果数' },
     { id: 'aori', label: 'アオリイカ' },
     { id: 'kurodai', label: 'クロダイ' },
-    { id: 'other', label: 'ほかの魚' },
+    { id: 'other', label: 'その他' },
   ];
 
   // ---------- 状態 ----------
@@ -199,7 +199,6 @@
   function renderHeader() {
     $('#hero-date').textContent = schedule.date;
     $('#goal-text').textContent = schedule.goal;
-    $('#spots-step').textContent = `STEP ${schedule.steps.length + 1}`;
     $('#spots-note').textContent = schedule.spotsNote;
     const t = schedule.title.trim();
     const sp = t.indexOf(' ');
@@ -218,7 +217,7 @@
     if (!c) {
       el.innerHTML = `<div class="latest-card latest-empty">
         <span class="latest-media"><span class="latest-ph">${fishIcon('アオリイカ')}</span></span>
-        <span class="latest-body"><span class="latest-label">LATEST CATCH</span><b>まだ釣果なし</b><span class="latest-meta">最初の1匹は誰だ？</span></span>
+        <span class="latest-body"><b>まだ誰も釣ってない</b><span class="latest-meta">一番乗りは誰だ</span></span>
       </div>`;
       return;
     }
@@ -227,11 +226,11 @@
         ? `<img src="${esc(c.photo_url)}" alt="${esc(c.fish)}の写真">`
         : `<span class="latest-ph latest-${fishKind(c.fish)}">${fishIcon(c.fish)}</span>`}</span>
       <span class="latest-body">
-        <span class="latest-label">LATEST CATCH 最新の1匹</span>
+        <span class="latest-label">いちばん新しい1匹 ・ ${esc(fmtTime(c.created_at))}</span>
         <span class="latest-fish">${fishIcon(c.fish)}${esc(c.fish)}${c.size_cm != null ? `<span class="mono">${esc(fmtSize(c.size_cm))}<small>cm</small></span>` : ''}</span>
         <span class="latest-who">${avatarHtml(c.angler, 'av-sm')}<b>${esc(c.angler)}</b></span>
         ${c.comment ? `<span class="latest-comment">「${esc(c.comment)}」</span>` : ''}
-        <span class="latest-meta">${esc(fmtTime(c.created_at))} ・ ${esc(spotName(c.spot))}</span>
+        <span class="latest-meta">${esc(spotName(c.spot))}で</span>
       </span>
     </button>`;
   }
@@ -255,9 +254,9 @@
     }).join('');
     const all = `<button type="button" class="spot-tab" role="tab" data-spot="all" aria-selected="${currentSpot === 'all'}">
         <span class="spot-no">全</span>
-        <span class="spot-name">全体マップ</span>
+        <span class="spot-name">全体</span>
         <span class="spot-meta"><span class="tag tag-none">3か所</span>${catches.length ? `<span class="spot-count">${catches.length}匹</span>` : ''}</span>
-        <span class="spot-note">ぜんぶの釣果をまとめて見る</span>
+        <span class="spot-note">3か所まとめて</span>
       </button>`;
     $('#spot-tabs').innerHTML = tabs + all;
   }
@@ -326,7 +325,7 @@
     $('#rank-tabs').innerHTML = RANKS.map((r) =>
       `<button type="button" role="tab" data-rank="${r.id}" aria-selected="${currentRank === r.id}">${esc(r.label)}</button>`).join('');
     const rows = computeRank(currentRank).slice(0, 10);
-    const emptyMsg = currentRank === 'count' ? 'まだ釣果なし。最初の1匹は誰だ？' : 'サイズ入りの釣果がまだありません';
+    const emptyMsg = currentRank === 'count' ? 'まだ誰も釣ってない' : 'サイズ入りの釣果がまだありません';
     $('#rank-list').innerHTML = rows.length
       ? rows.map((r, i) => `
         <li ${r.id ? `data-catch="${esc(r.id)}"` : `data-angler="${esc(r.name)}"`}>
@@ -400,7 +399,7 @@
             <span class="feed-meta">${esc(fmtTime(c.created_at))} ・ ${esc(spotName(c.spot))}</span>
           </span>
         </button></li>`).join('')
-      : '<li class="feed-empty">ここにみんなの釣果が並びます。釣れたら右下の「釣った！」から登録しよう。</li>';
+      : '<li class="feed-empty">まだ何もなし。釣れたら右下の「釣った！」から。</li>';
   }
 
   $('#feed').addEventListener('click', (e) => {
