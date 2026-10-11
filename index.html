@@ -50,9 +50,15 @@
           <button type="button" class="chip-btn" id="locate-btn">現在地</button>
         </div>
         <button type="button" class="chip-btn save-view" id="save-view">ここを初期位置にする</button>
+        <div class="pick-center" id="pick-center" hidden aria-hidden="true">
+          <svg viewBox="0 0 32 44" width="36" height="50"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 26.6 16 43 16 43s15-16.4 15-27.2C31 7.6 24.3 1 16 1z" fill="#f0b23a" stroke="#1a1408" stroke-width="2"/><circle cx="16" cy="15.5" r="5.5" fill="#1a1408"/></svg>
+        </div>
         <div class="pick-banner" id="pick-banner" hidden>
-          <span>釣れた場所をタップ</span>
-          <button type="button" id="pick-cancel">やめる</button>
+          <p>地図を動かして、ピンの先を釣れた場所に合わせてね</p>
+          <div class="pick-actions">
+            <button type="button" class="pick-cancel" id="pick-cancel">やめる</button>
+            <button type="button" class="pick-ok" id="pick-ok">ここで決定</button>
+          </div>
         </div>
       </div>
     </section>

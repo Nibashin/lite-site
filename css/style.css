@@ -247,13 +247,28 @@ h1, h2, h3 { margin: 0; }
 .save-view { position: absolute; left: 10px; bottom: 10px; z-index: 500; font-size: 12px; color: var(--ink-2); }
 .map-wrap.picking .save-view { display: none; }
 .pick-banner {
-  position: absolute; left: 0; right: 0; top: 0; z-index: 600;
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  background: var(--lamp); color: var(--lamp-ink); font-weight: 900; padding: 10px 12px;
+  position: absolute; left: 10px; right: 10px; bottom: 12px; z-index: 600;
+  background: var(--sea); border: 1px solid var(--lamp); border-radius: 6px;
+  padding: 10px 10px 10px 12px; box-shadow: 0 6px 18px #0009;
 }
-.pick-banner button { border: 0; background: var(--lamp-ink); color: var(--ink); border-radius: 4px; padding: 4px 10px; font-size: 13px; font-weight: 700; }
-.map-wrap.picking #map { cursor: crosshair; }
-.map-wrap.picking .map-tools { top: 54px; }
+.pick-banner p { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+.pick-actions { display: flex; gap: 8px; }
+.pick-actions button { border: 0; border-radius: 4px; padding: 11px 12px; font-size: 15px; font-weight: 900; }
+.pick-cancel { background: transparent; color: var(--ink-2); border: 1px solid var(--rule) !important; }
+.pick-ok { flex: 1; background: var(--lamp); color: var(--lamp-ink); }
+/* 真ん中のピン:先っぽが地図の中心 */
+.pick-center {
+  position: absolute; left: 50%; top: 50%; z-index: 550; pointer-events: none;
+  transform: translate(-50%, -100%); filter: drop-shadow(0 3px 4px #0009);
+}
+.pick-center svg { display: block; }
+.pick-center::after {
+  content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; margin-left: -4px;
+  border-radius: 50%; background: #000a; box-shadow: 0 0 0 2px #f0b23a80;
+}
+.map-wrap.picking #map { cursor: grab; }
+.map-wrap.picking .save-view { display: none; }
+body.is-picking .fab, body.is-picking .rank-bar { display: none !important; }
 
 /* 夜の図(淡色地図を反転)と航空写真 */
 .tiles-night { filter: invert(1) hue-rotate(195deg) saturate(.5) brightness(.95) contrast(.9); }

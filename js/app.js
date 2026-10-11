@@ -110,9 +110,8 @@
       (pos) => {
         const ll = [pos.coords.latitude, pos.coords.longitude];
         mapTouched = true;
-        map.setView(ll, Math.max(map.getZoom(), 17));
-        if (picking) placePending(L.latLng(ll));
-        else {
+        map.setView(ll, Math.max(map.getZoom(), 18));
+        if (!picking) {
           L.circleMarker(ll, { radius: 8, color: '#a9c9f2', weight: 3, fillOpacity: 0.5 }).addTo(map)
             .bindTooltip('いまここ').openTooltip();
         }
@@ -534,27 +533,34 @@
       return;
     }
     picking = true;
+    map.closePopup();
     mapWrap.classList.add('picking');
+    document.body.classList.add('is-picking');
     $('#pick-banner').hidden = false;
+    $('#pick-center').hidden = false;
     if (currentSpot === 'all') selectSpot('funakata');
     mapWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   function stopPicking() {
     picking = false;
     mapWrap.classList.remove('picking');
+    document.body.classList.remove('is-picking');
     $('#pick-banner').hidden = true;
+    $('#pick-center').hidden = true;
   }
   fab.addEventListener('click', startPicking);
   $('#pick-cancel').addEventListener('click', stopPicking);
-
-  map.on('click', (e) => { if (picking) placePending(e.latlng); });
+  // 真ん中のピンは固定。地図を動かして合わせ、「ここで決定」で確定
+  $('#pick-ok').addEventListener('click', () => { if (picking) placePending(map.getCenter()); });
+  // タップした所を真ん中に寄せる(微調整しやすいように)
+  map.on('click', (e) => { if (picking) map.panTo(e.latlng); });
 
   function placePending(latlng) {
     stopPicking();
     pendingPos = latlng;
     if (tempMarker) tempMarker.remove();
     tempMarker = L.marker(latlng, {
-      icon: L.divIcon({ className: '', html: '<div class="pin pin-temp"></div>', iconSize: [34, 34], iconAnchor: [4, 34] }),
+      icon: L.divIcon({ className: '', html: $('#pick-center').innerHTML, iconSize: [36, 50], iconAnchor: [18, 50] }),
       interactive: false,
     }).addTo(map);
     openCatchForm(nearestSpot(latlng));
