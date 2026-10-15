@@ -12,7 +12,7 @@ create table if not exists public.catches (
   fish        text not null check (char_length(fish) between 1 and 20),
   size_cm     numeric(5,1) check (size_cm is null or (size_cm > 0 and size_cm < 300)),
   comment     text check (comment is null or char_length(comment) <= 200),
-  spot        text not null check (spot in ('funakata', 'okinoshima', 'sakata')),
+  spot        text not null check (spot in ('funakata', 'okinoshima', 'sakata', 'sunosaki')),
   lat         double precision not null,
   lng         double precision not null,
   photo_path  text

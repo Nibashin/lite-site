@@ -116,6 +116,7 @@
     funakata: { no: 1, center: [35.0228, 139.8298], zoom: 16 },
     okinoshima: { no: 2, center: [34.9922, 139.8262], zoom: 16 },
     sakata: { no: 3, center: [34.9747, 139.7755], zoom: 17 },
+    sunosaki: { no: 4, center: [34.97536, 139.75761], zoom: 16 },
   };
   const SPOT_IDS = Object.keys(SPOT_GEO);
 
@@ -145,6 +146,7 @@
       { id: 'funakata', name: '船形漁港', note: 'まずはここから', tag: '深夜狙い', tagType: 'night', fish: 'イカ○ クロダイ○', hint: '青灯台付近' },
       { id: 'okinoshima', name: '沖ノ島護岸', note: '夜明けに合わせて移動', tag: '朝まずめ', tagType: 'dawn', fish: 'イカ○ クロダイ○', hint: '' },
       { id: 'sakata', name: '坂田漁港', note: 'どこも空いてなかったら', tag: '予備', tagType: 'reserve', fish: 'イカ○ クロダイ○', hint: 'フカセ・ダンゴ' },
+      { id: 'sunosaki', name: '洲崎灯台周辺', note: '灯台の下の磯まわり', tag: '', tagType: 'none', fish: 'イカ○ クロダイ○', hint: '' },
     ],
     goal: '午前中 終了予定',
   };
@@ -167,7 +169,7 @@
         })),
       })),
       spotsNote: str(s.spotsNote, d.spotsNote),
-      // ポイントは3か所固定(釣果と紐づくため)。文言だけ編集できる
+      // ポイントは固定(釣果と紐づくため)。文言だけ編集できる
       spots: d.spots.map((def) => {
         const o = spotsIn.find((x) => x && x.id === def.id) || {};
         return {

@@ -227,8 +227,8 @@
     const all = `<button type="button" class="spot-tab" role="tab" data-spot="all" aria-selected="${currentSpot === 'all'}">
         <span class="spot-no">全</span>
         <span class="spot-name">全体</span>
-        <span class="spot-meta"><span class="tag tag-none">3か所</span>${catches.length ? `<span class="spot-count">${catches.length}匹</span>` : ''}</span>
-        <span class="spot-note">3か所まとめて</span>
+        <span class="spot-meta"><span class="tag tag-none">${SPOT_IDS.length}か所</span>${catches.length ? `<span class="spot-count">${catches.length}匹</span>` : ''}</span>
+        <span class="spot-note">${SPOT_IDS.length}か所まとめて</span>
       </button>`;
     $('#spot-tabs').innerHTML = tabs + all;
   }
