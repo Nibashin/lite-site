@@ -9,6 +9,8 @@
     demoCatches: 'tateyama-demo-catches',
     demoProfiles: 'tateyama-demo-profiles',
     demoKv: 'tateyama-demo-kv',
+    demoReactions: 'tateyama-demo-reactions',
+    demoComments: 'tateyama-demo-comments',
     mine: 'tateyama-my-ids',
     me: 'tateyama-me',
     legacyAngler: 'tateyama-angler',
@@ -30,7 +32,7 @@
     return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-  const isPassError = (err) => /passcode/i.test(String(err && (err.message || err)));
+  const isPassError = (err) => /passcode|unknown name/i.test(String(err && (err.message || err)));
 
   let toastTimer;
   function toast(msg) {
@@ -220,6 +222,28 @@
         emit('profiles');
         return prev;
       },
+      async listReactions() { return lsGet(LS.demoReactions, []); },
+      async toggleReaction(catchId, kind, name) {
+        const all = lsGet(LS.demoReactions, []);
+        const i = all.findIndex((r) => r.catch_id === catchId && r.kind === kind && r.name === name);
+        if (i >= 0) all.splice(i, 1); else all.push({ catch_id: catchId, kind, name, created_at: new Date().toISOString() });
+        save(LS.demoReactions, all);
+        emit('reactions');
+        return i < 0;
+      },
+      async listComments() { return lsGet(LS.demoComments, []); },
+      async addComment(catchId, body, name) {
+        const all = lsGet(LS.demoComments, []);
+        const row = { id: uuid(), catch_id: catchId, name, body, created_at: new Date().toISOString() };
+        all.push(row);
+        save(LS.demoComments, all);
+        emit('comments');
+        return row;
+      },
+      async removeComment(id, name) {
+        save(LS.demoComments, lsGet(LS.demoComments, []).filter((c) => !(c.id === id && c.name === name)));
+        emit('comments');
+      },
       async getKV(key) { return lsGet(LS.demoKv, {})[key] ?? null; },
       async setKV(key, value) {
         const kv = lsGet(LS.demoKv, {});
@@ -233,6 +257,8 @@
           if (e.key === LS.demoCatches) fn('catches');
           if (e.key === LS.demoProfiles) fn('profiles');
           if (e.key === LS.demoKv) fn('kv');
+          if (e.key === LS.demoReactions) fn('reactions');
+          if (e.key === LS.demoComments) fn('comments');
         });
       },
     };
@@ -288,6 +314,30 @@
         if (error) throw error;
         return { ...data, avatar_url: pub(data.avatar_path) };
       },
+      async listReactions() {
+        const { data, error } = await sb.from('reactions').select('*');
+        if (error) { console.warn('reactions:', error.message); return []; }
+        return data;
+      },
+      async toggleReaction(catchId, kind, name) {
+        const { data, error } = await sb.rpc('toggle_reaction', { p_name: name, p_catch_id: catchId, p_kind: kind });
+        if (error) throw error;
+        return data;
+      },
+      async listComments() {
+        const { data, error } = await sb.from('comments').select('*').order('created_at', { ascending: true });
+        if (error) { console.warn('comments:', error.message); return []; }
+        return data;
+      },
+      async addComment(catchId, body, name) {
+        const { data, error } = await sb.rpc('add_comment', { p_name: name, p_catch_id: catchId, p_body: body });
+        if (error) throw error;
+        return data;
+      },
+      async removeComment(id, name) {
+        const { error } = await sb.rpc('delete_comment', { p_name: name, p_id: id });
+        if (error) throw error;
+      },
       async getKV(key) {
         const { data, error } = await sb.from('kv').select('value').eq('key', key).maybeSingle();
         if (error) { console.warn('kv:', error.message); return null; }
@@ -299,7 +349,7 @@
       },
       subscribe(fn, onStatus) {
         const ch = sb.channel('tateyama-live');
-        for (const table of ['catches', 'profiles', 'kv']) {
+        for (const table of ['catches', 'profiles', 'kv', 'reactions', 'comments']) {
           ch.on('postgres_changes', { event: '*', schema: 'public', table }, () => fn(table));
         }
         ch.subscribe((status) => onStatus && onStatus(status === 'SUBSCRIBED'));

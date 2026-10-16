@@ -6,6 +6,7 @@
 - 真ん中のピンに地図を合わせて釣れた場所を決め、魚(選択式)・サイズ・ひとこと・写真を登録
 - ホワイトボード風のランキング(釣果数・アオリイカ最大・クロダイ最大・その他)を常に表示。釣果の写真を大きく貼り出し
 - 誰かが登録すると、開いている全員の画面にすぐ反映
+- 釣果を開くと、ほかの人がスタンプ(ナイス！・でかっ・うらやま・おめ)とコメントで反応できる
 - 名前とアイコンはブラウザに記憶。同じ名前を入れるとアイコンが復活(上書きもOK)。一度登録した名前は合言葉いらず
 - スケジュールページ(`schedule.html`)でみんなで予定を見て編集
 - 地図の「ここを初期位置にする」で、各ポイントを押したときの表示位置を保存
@@ -22,7 +23,7 @@ Supabase をつながなくても「お試しモード」で動きます。こ�
 1. https://supabase.com で無料アカウントを作り、「New project」でプロジェクトを作る(リージョンは Tokyo がおすすめ)
 2. 左メニューの **SQL Editor** を開き、[`supabase/setup.sql`](supabase/setup.sql) の中身をまるごと貼り付ける
 3. SQL の中の `'tateyama'` を、友達だけに教える**合言葉**に書き換えてから **Run** を押す
-4. 続けて [`supabase/update-2.sql`](supabase/update-2.sql)、[`supabase/update-3.sql`](supabase/update-3.sql) も同じように貼って **Run** する
+4. 続けて [`supabase/update-2.sql`](supabase/update-2.sql)、[`supabase/update-3.sql`](supabase/update-3.sql)、[`supabase/update-4.sql`](supabase/update-4.sql) も同じように貼って **Run** する
 
 ### 2. 接続情報をサイトに入れる
 

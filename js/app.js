@@ -6,6 +6,13 @@
     FISH, fishKind, fishIcon, SPOT_GEO, SPOT_IDS, normalizeSchedule, store, getMe, setMe,
   } = window.Tsuri;
 
+  const REACTIONS = [
+    { id: 'nice', label: 'ナイス！' },
+    { id: 'big', label: 'でかっ' },
+    { id: 'envy', label: 'うらやま' },
+    { id: 'gg', label: 'おめ' },
+  ];
+
   const RANKS = [
     { id: 'count', label: '釣果数' },
     { id: 'aori', label: 'アオリイカ' },
@@ -15,6 +22,9 @@
 
   // ---------- 状態 ----------
   let catches = [];
+  let reactions = [];
+  let comments = [];
+  let detailId = null;
   let profiles = new Map();
   let schedule = normalizeSchedule(null);
   let spotViews = {};
@@ -167,6 +177,7 @@
       <div class="pop-fish">${fishIcon(c.fish)}${esc(c.fish)}${c.size_cm != null ? ` <span class="mono">${esc(fmtSize(c.size_cm))}cm</span>` : ''}</div>
       ${c.comment ? `<p class="pop-comment">「${esc(c.comment)}」</p>` : ''}
       <div class="pop-meta">${esc(fmtTime(c.created_at))} ・ ${esc(spotName(c.spot))}</div>
+      <button type="button" class="pop-detail" data-detail="${esc(c.id)}">${esc(socialText(c.id) || 'リアクション・コメント')}</button>
       ${canDelete(c) ? `<button type="button" class="del-btn" data-del="${esc(c.id)}">この釣果を消す</button>` : ''}
     </div>`;
   }
@@ -334,9 +345,9 @@
   $('#rank-list').addEventListener('click', (e) => {
     const li = e.target.closest('[data-catch], [data-angler]');
     if (!li) return;
-    if (li.dataset.catch) { focusCatch(li.dataset.catch); return; }
+    if (li.dataset.catch) { openDetail(li.dataset.catch); return; }
     const last = [...catches].reverse().find((c) => c.angler === li.dataset.angler);
-    if (last) focusCatch(last.id);
+    if (last) openDetail(last.id);
   });
 
   // ランキング欄が画面から外れたら、下にランキングバーを出す
@@ -371,6 +382,7 @@
             </span>
             ${c.comment ? `<p class="feed-comment">「${esc(c.comment)}」</p>` : ''}
             <span class="feed-meta">${esc(fmtTime(c.created_at))} ・ ${esc(spotName(c.spot))}</span>
+            ${socialText(c.id) ? `<span class="feed-social">${esc(socialText(c.id))}</span>` : ''}
           </span>
         </button></li>`).join('')
       : '<li class="feed-empty">まだ何もなし。釣れたら右下の「釣った！」から。</li>';
@@ -378,7 +390,7 @@
 
   $('#feed').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-catch]');
-    if (btn) focusCatch(btn.dataset.catch);
+    if (btn) openDetail(btn.dataset.catch);
   });
 
   function focusCatch(id) {
@@ -402,11 +414,145 @@
     try {
       await store.removeCatch(btn.dataset.del, lsGet(LS.pass, ''));
       map.closePopup();
+      if (detailDialog.open) detailDialog.close();
       toast('消しました');
       await reload('catches');
     } catch (err) {
       console.error(err);
       toast(isPassError(err) ? '合言葉がちがうので消せませんでした' : '消せませんでした');
+    }
+  });
+
+  // ---------- 詳細(リアクション・コメント) ----------
+  const detailDialog = $('#detail-dialog');
+  const reactionsOf = (id) => reactions.filter((r) => r.catch_id === id);
+  const commentsOf = (id) => comments.filter((c) => c.catch_id === id);
+
+  function socialText(id) {
+    const rs = reactionsOf(id);
+    const parts = REACTIONS
+      .map((k) => [k.label, rs.filter((r) => r.kind === k.id).length])
+      .filter(([, n]) => n)
+      .map(([label, n]) => `${label}${n}`);
+    const n = commentsOf(id).length;
+    if (n) parts.push(`コメント${n}`);
+    return parts.join(' ・ ');
+  }
+
+  function renderDetail() {
+    if (!detailId || !detailDialog.open) return;
+    const c = catches.find((x) => x.id === detailId);
+    if (!c) { detailDialog.close(); return; }
+    const rs = reactionsOf(c.id);
+    const cs = commentsOf(c.id);
+    $('#detail-title').innerHTML = `${avatarHtml(c.angler, 'av-sm')}${esc(c.angler)}の釣果`;
+    const reactors = [...new Set(rs.map((r) => r.name))];
+    $('#detail-body').innerHTML = `
+      ${c.photo_url ? `<img class="detail-photo" src="${esc(c.photo_url)}" alt="${esc(c.fish)}の写真">` : ''}
+      <div class="detail-fish">${fishIcon(c.fish)}${esc(c.fish)}${c.size_cm != null ? `<span class="mono">${esc(fmtSize(c.size_cm))}<small>cm</small></span>` : ''}</div>
+      ${c.comment ? `<p class="detail-comment">「${esc(c.comment)}」</p>` : ''}
+      <p class="detail-meta">${esc(fmtTime(c.created_at))} ・ ${esc(spotName(c.spot))}
+        <button type="button" class="link-btn" data-map="${esc(c.id)}">地図で見る</button></p>
+      <div class="react-row">
+        ${REACTIONS.map((k) => {
+          const n = rs.filter((r) => r.kind === k.id).length;
+          const mine = me && rs.some((r) => r.kind === k.id && r.name === me.name);
+          return `<button type="button" class="react-btn" data-react="${k.id}" aria-pressed="${Boolean(mine)}">${esc(k.label)}${n ? `<b>${n}</b>` : ''}</button>`;
+        }).join('')}
+      </div>
+      ${reactors.length ? `<p class="react-names">${reactors.map(esc).join('、')} が反応</p>` : ''}
+      <h4 class="cmt-head">コメント${cs.length ? ` ${cs.length}` : ''}</h4>
+      <ol class="cmt-list">
+        ${cs.length ? cs.map((m) => `
+          <li>
+            ${avatarHtml(m.name, 'av-sm')}
+            <div class="cmt-main">
+              <div class="cmt-top"><b>${esc(m.name)}</b><span>${esc(fmtTime(m.created_at))}</span>
+                ${me && me.name === m.name ? `<button type="button" class="cmt-del" data-cmt-del="${esc(m.id)}">消す</button>` : ''}</div>
+              <p class="cmt-body">${esc(m.body)}</p>
+            </div>
+          </li>`).join('') : '<li class="cmt-empty">まだコメントなし</li>'}
+      </ol>`;
+  }
+
+  function openDetail(id) {
+    if (!catches.some((c) => c.id === id)) return;
+    detailId = id;
+    map.closePopup();
+    $('#cmt-input').value = '';
+    if (!detailDialog.open) detailDialog.showModal();
+    renderDetail();
+  }
+
+  // 名前がないとき・登録されていないときは、名前登録をはさんでから続ける
+  function needName(then) {
+    openProfile('リアクションやコメントには名前の登録がいります。', () => {
+      if (!detailDialog.open && detailId) detailDialog.showModal();
+      renderDetail();
+      if (then) then();
+    });
+  }
+
+  async function doReact(kind) {
+    if (!me) { needName(() => doReact(kind)); return; }
+    const id = detailId;
+    // 先に画面へ反映してから送る
+    const i = reactions.findIndex((r) => r.catch_id === id && r.kind === kind && r.name === me.name);
+    if (i >= 0) reactions.splice(i, 1);
+    else reactions.push({ catch_id: id, kind, name: me.name, created_at: new Date().toISOString() });
+    renderDetail();
+    renderFeed();
+    try {
+      await store.toggleReaction(id, kind, me.name);
+    } catch (ex) {
+      console.error(ex);
+      if (isPassError(ex)) needName(); else toast('送れませんでした');
+    }
+    reload('reactions');
+  }
+
+  document.addEventListener('click', (e) => {
+    const d = e.target.closest('[data-detail]');
+    if (d) openDetail(d.dataset.detail);
+  });
+
+  $('#detail-body').addEventListener('click', async (e) => {
+    const r = e.target.closest('[data-react]');
+    if (r) { doReact(r.dataset.react); return; }
+    const m = e.target.closest('[data-map]');
+    if (m) { detailDialog.close(); focusCatch(m.dataset.map); return; }
+    const del = e.target.closest('[data-cmt-del]');
+    if (del && me) {
+      if (!confirm('このコメントを消しますか？')) return;
+      try {
+        await store.removeComment(del.dataset.cmtDel, me.name);
+        await reload('comments');
+      } catch (ex) {
+        console.error(ex);
+        toast('消せませんでした');
+      }
+    }
+  });
+
+  $('#detail-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = $('#cmt-input');
+    const body = input.value.trim();
+    if (!body) return;
+    if (!me) { needName(); return; }
+    const btn = $('#cmt-send');
+    btn.disabled = true;
+    try {
+      await store.addComment(detailId, body, me.name);
+      input.value = '';
+      await reload('comments');
+      const list = $('#detail-body .cmt-list');
+      if (list) list.lastElementChild?.scrollIntoView({ block: 'nearest' });
+    } catch (ex) {
+      console.error(ex);
+      if (isPassError(ex)) needName(); else toast('送れませんでした');
+    } finally {
+      btn.disabled = false;
     }
   });
 
@@ -577,7 +723,7 @@
   cDialog.addEventListener('close', () => {
     if (tempMarker && !pDialog.open) { tempMarker.remove(); tempMarker = null; }
   });
-  for (const d of [cDialog, pDialog]) {
+  for (const d of [cDialog, pDialog, detailDialog]) {
     d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
   }
   pDialog.addEventListener('close', () => {
@@ -648,6 +794,7 @@
     renderFeedFilter();
     renderFeed();
     syncSaveViewBtn();
+    renderDetail();
   }
 
   async function loadKV() {
@@ -680,6 +827,12 @@
           }));
         }
         if (what === 'all' || what === 'kv') jobs.push(loadKV());
+        if (what === 'all' || what === 'catches' || what === 'reactions') {
+          jobs.push(store.listReactions().then((rows) => { reactions = rows; }));
+        }
+        if (what === 'all' || what === 'catches' || what === 'comments') {
+          jobs.push(store.listComments().then((rows) => { comments = rows; }));
+        }
         await Promise.all(jobs);
       } catch (ex) {
         console.error(ex);

@@ -161,6 +161,21 @@
     </form>
   </dialog>
 
+  <!-- 釣果の詳細(リアクション・コメント) -->
+  <dialog class="sheet detail" id="detail-dialog" aria-labelledby="detail-title">
+    <form id="detail-form" novalidate>
+      <div class="sheet-head">
+        <h3 id="detail-title">釣果</h3>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      </div>
+      <div id="detail-body"></div>
+      <div class="cmt-form">
+        <input type="text" id="cmt-input" maxlength="300" autocomplete="off" placeholder="コメントする" aria-label="コメント">
+        <button type="submit" id="cmt-send">送る</button>
+      </div>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="vendor/leaflet/leaflet.js"></script>

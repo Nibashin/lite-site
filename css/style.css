@@ -515,3 +515,50 @@ body.is-picking .fab, body.is-picking .rank-bar { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- 釣果の詳細・リアクション・コメント ---------- */
+.detail form { gap: 12px; }
+#detail-title { display: flex; align-items: center; gap: 8px; }
+.detail-photo { display: block; width: calc(100% + 36px); margin: 0 -18px; max-height: 56vh; object-fit: cover; background: var(--sea); }
+@media (min-width: 601px) { .detail-photo { width: 100%; margin: 0; border-radius: 4px; } }
+.detail-fish { display: flex; align-items: baseline; gap: 8px; font-size: 22px; font-weight: 900; margin-top: 4px; }
+.detail-fish .fish-ico { width: 22px; height: 22px; align-self: center; }
+.detail-fish .mono { color: var(--lamp); }
+.detail-fish small { font-size: 13px; color: var(--ink-2); }
+.detail-comment { margin: 0; font-family: var(--hand); font-size: 19px; line-height: 1.4; }
+.detail-meta { margin: 0; font-size: 13px; color: var(--ink-3); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.detail-meta .link-btn { font-size: 13px; padding: 0; }
+
+.react-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.react-btn {
+  border: 1px solid var(--rule); background: transparent; border-radius: 4px; padding: 10px 2px;
+  font-family: var(--hand); font-size: 16px; color: var(--ink-2); white-space: nowrap;
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 4px;
+}
+.react-btn b { font-family: var(--font); font-size: 13px; font-weight: 700; }
+.react-btn[aria-pressed="true"] { background: var(--lamp); border-color: var(--lamp); color: var(--lamp-ink); }
+.react-names { margin: -2px 0 0; font-size: 12px; color: var(--ink-3); }
+
+.cmt-head { margin: 8px 0 0; font-size: 14px; font-weight: 900; color: var(--ink-2); }
+.cmt-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.cmt-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.cmt-list li.cmt-empty { display: block; color: var(--ink-3); font-size: 13px; }
+.cmt-top { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+.cmt-top span { color: var(--ink-3); font-size: 12px; }
+.cmt-del { margin-left: auto; border: 0; background: none; color: var(--ink-3); font-size: 12px; text-decoration: underline; padding: 0; }
+.cmt-body { margin: 2px 0 0; font-size: 15px; overflow-wrap: anywhere; white-space: pre-wrap; }
+
+.cmt-form {
+  position: sticky; bottom: calc(-18px - env(safe-area-inset-bottom)); margin: 0 -18px calc(-18px - env(safe-area-inset-bottom));
+  padding: 10px 18px calc(12px + env(safe-area-inset-bottom)); background: var(--sea-2); border-top: 1px solid var(--rule);
+  display: flex; gap: 8px;
+}
+.cmt-form input { flex: 1; min-width: 0; background: var(--sea); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; font-size: 16px; }
+.cmt-form button { border: 0; border-radius: 4px; padding: 0 16px; background: var(--lamp); color: var(--lamp-ink); font-weight: 900; }
+.cmt-form button:disabled { opacity: .6; }
+
+.feed-social { display: block; font-size: 12px; color: var(--lamp); margin-top: 2px; }
+.pop-detail {
+  display: block; width: 100%; margin-top: 8px; border: 1px solid var(--rule); background: transparent; border-radius: 4px;
+  padding: 7px 8px; font-size: 13px; font-weight: 700; color: var(--ink);
+}
