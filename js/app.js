@@ -25,6 +25,8 @@
   let reactions = [];
   let comments = [];
   let detailId = null;
+  let dishes = [];
+  let dishViewId = null;
   let profiles = new Map();
   let schedule = normalizeSchedule(null);
   let spotViews = {};
@@ -436,6 +438,8 @@
       .map(([label, n]) => `${label}${n}`);
     const n = commentsOf(id).length;
     if (n) parts.push(`コメント${n}`);
+    const d = dishesOf(id).length;
+    if (d) parts.push(`料理${d}`);
     return parts.join(' ・ ');
   }
 
@@ -461,6 +465,15 @@
         }).join('')}
       </div>
       ${reactors.length ? `<p class="react-names">${reactors.map(esc).join('、')} が反応</p>` : ''}
+      <div class="detail-dishes">
+        <h4 class="cmt-head">この魚の料理</h4>
+        ${dishesOf(c.id).map((d) => `
+          <button type="button" class="dish-row" data-dish="${esc(d.id)}">
+            ${d.photo_url ? `<img src="${esc(d.photo_url)}" alt="">` : `<span class="dish-noimg">${fishIcon(c.fish)}</span>`}
+            <span><b>${esc(d.title)}</b><small>${esc(d.cook)}が作った</small></span>
+          </button>`).join('')}
+        <button type="button" class="add-btn" data-cook="${esc(c.id)}">＋ この魚を料理した</button>
+      </div>
       <h4 class="cmt-head">コメント${cs.length ? ` ${cs.length}` : ''}</h4>
       <ol class="cmt-list">
         ${cs.length ? cs.map((m) => `
@@ -553,6 +566,138 @@
       if (isPassError(ex)) needName(); else toast('送れませんでした');
     } finally {
       btn.disabled = false;
+    }
+  });
+
+  // ---------- 料理 ----------
+  const dishDialog = $('#dish-dialog');
+  const dishView = $('#dish-view');
+  const dishesOf = (catchId) => dishes.filter((d) => d.catch_id === catchId);
+  const DISH_NAMES = ['刺身', '塩焼き', '煮付け', 'フライ', '天ぷら', '唐揚げ', 'ムニエル', 'アクアパッツァ', '漬け丼', '炊き込みご飯', '一夜干し', 'バター醤油炒め', 'イカ墨パスタ', '味噌汁'];
+  const catchLabel = (c) => `${c.angler}の${c.fish}${c.size_cm != null ? ` ${fmtSize(c.size_cm)}cm` : ''}(${fmtTime(c.created_at)})`;
+
+  function renderDishes() {
+    const list = dishes.slice().reverse();
+    $('#dish-grid').innerHTML = list.length
+      ? list.map((d) => {
+        const c = catches.find((x) => x.id === d.catch_id);
+        return `<li><button type="button" class="dish-tile" data-dish="${esc(d.id)}">
+          ${d.photo_url ? `<img src="${esc(d.photo_url)}" alt="${esc(d.title)}の写真" loading="lazy">` : `<span class="dish-noimg">${fishIcon(c ? c.fish : 'その他')}</span>`}
+          <span class="dish-title">${esc(d.title)}</span>
+          <span class="dish-by">${avatarHtml(d.cook, 'av-xs')}${esc(d.cook)}${c ? ` ・ ${esc(c.angler)}の${esc(c.fish)}` : ''}</span>
+        </button></li>`;
+      }).join('')
+      : '<li class="dish-empty">まだ料理の記録なし。持って帰ったら作って載せよう。</li>';
+  }
+
+  function renderDishView() {
+    if (!dishViewId || !dishView.open) return;
+    const d = dishes.find((x) => x.id === dishViewId);
+    if (!d) { dishView.close(); return; }
+    const c = catches.find((x) => x.id === d.catch_id);
+    $('#dish-view-title').textContent = d.title;
+    $('#dish-view-body').innerHTML = `
+      ${d.photo_url ? `<img class="detail-photo" src="${esc(d.photo_url)}" alt="${esc(d.title)}の写真">` : ''}
+      <p class="dish-cook">${avatarHtml(d.cook, 'av-sm')}<b>${esc(d.cook)}</b>が作った ・ ${esc(fmtTime(d.created_at))}</p>
+      ${d.memo ? `<p class="detail-comment">「${esc(d.memo)}」</p>` : ''}
+      ${c ? `<button type="button" class="dish-from" data-detail="${esc(c.id)}">
+          ${c.photo_url ? `<img src="${esc(c.photo_url)}" alt="">` : `<span class="dish-noimg">${fishIcon(c.fish)}</span>`}
+          <span><small>使った魚</small><b>${esc(catchLabel(c))}</b><small>${esc(spotName(c.spot))}で釣った</small></span>
+        </button>` : ''}
+      ${me && me.name === d.cook ? `<button type="button" class="del-btn" data-dish-del="${esc(d.id)}">この料理の記録を消す</button>` : ''}`;
+  }
+
+  function openDishView(id) {
+    dishViewId = id;
+    if (!dishView.open) dishView.showModal();
+    renderDishView();
+  }
+
+  let dishPhotoUrl = null;
+  function openDishForm(catchId) {
+    if (!me) { openProfile('料理を記録するには名前の登録がいります。', () => openDishForm(catchId)); return; }
+    $('#dish-who').innerHTML = `${avatarHtml(me.name, 'av-md')}<b>${esc(me.name)}</b>`;
+    // 自分の釣果を先に、新しい順
+    const sorted = catches.slice().reverse().sort((a, b) => (b.angler === me.name) - (a.angler === me.name));
+    $('#d-catch').innerHTML = '<option value="">えらばない</option>'
+      + sorted.map((c) => `<option value="${esc(c.id)}">${esc(catchLabel(c))}</option>`).join('');
+    $('#d-catch').value = catchId || '';
+    $('#d-title').value = '';
+    $('#d-memo').value = '';
+    $('#d-photo').value = '';
+    $('#d-photo-preview').hidden = true;
+    $('#d-photo-hint').hidden = false;
+    $('#d-error').textContent = '';
+    syncDishNames();
+    dishDialog.showModal();
+  }
+  function syncDishNames() {
+    const c = catches.find((x) => x.id === $('#d-catch').value);
+    const prefix = c ? `${c.fish.replace(/^その他$/, '魚')}の` : '';
+    $('#dish-names').innerHTML = DISH_NAMES.map((n) => `<option value="${esc(prefix + n)}">`).join('');
+    $('#d-title').placeholder = `${prefix || 'アオリイカの'}刺身`;
+  }
+  $('#d-catch').addEventListener('change', syncDishNames);
+  $('#dish-add').addEventListener('click', () => openDishForm(''));
+
+  $('#d-photo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (dishPhotoUrl) URL.revokeObjectURL(dishPhotoUrl);
+    dishPhotoUrl = file ? URL.createObjectURL(file) : null;
+    $('#d-photo-preview').src = dishPhotoUrl || '';
+    $('#d-photo-preview').hidden = !file;
+    $('#d-photo-hint').hidden = Boolean(file);
+  });
+
+  $('#dish-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = $('#d-error');
+    const title = $('#d-title').value.trim();
+    if (!title) { err.textContent = '料理名を入れてね'; $('#d-title').focus(); return; }
+    if (!me) { openProfile('料理を記録するには名前の登録がいります。'); return; }
+    const photo = $('#d-photo').files[0] || null;
+    const btn = $('#d-submit');
+    btn.disabled = true;
+    btn.textContent = photo ? '写真を送っています…' : '記録しています…';
+    err.textContent = '';
+    try {
+      const row = await store.addDish({
+        title, catch_id: $('#d-catch').value || null, memo: $('#d-memo').value.trim() || null,
+      }, photo, me.name);
+      dishDialog.close();
+      toast(`${title} を記録しました`);
+      await reload('dishes');
+      openDishView(row.id);
+    } catch (ex) {
+      console.error(ex);
+      err.textContent = isPassError(ex)
+        ? 'この名前はまだ登録されていません。右上から名前を登録してね'
+        : `記録できませんでした(${ex.message || ex})`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '記録する';
+    }
+  });
+
+  document.addEventListener('click', async (e) => {
+    const cook = e.target.closest('[data-cook]');
+    if (cook) { openDishForm(cook.dataset.cook); return; }
+    const d = e.target.closest('[data-dish]');
+    if (d) { openDishView(d.dataset.dish); return; }
+    const from = e.target.closest('#dish-view [data-detail]');
+    if (from) { dishView.close(); return; }
+    const del = e.target.closest('[data-dish-del]');
+    if (del && me) {
+      if (!confirm('この料理の記録を消しますか？')) return;
+      try {
+        await store.removeDish(del.dataset.dishDel, me.name);
+        dishView.close();
+        toast('消しました');
+        await reload('dishes');
+      } catch (ex) {
+        console.error(ex);
+        toast('消せませんでした');
+      }
     }
   });
 
@@ -723,7 +868,7 @@
   cDialog.addEventListener('close', () => {
     if (tempMarker && !pDialog.open) { tempMarker.remove(); tempMarker = null; }
   });
-  for (const d of [cDialog, pDialog, detailDialog]) {
+  for (const d of [cDialog, pDialog, detailDialog, dishDialog, dishView]) {
     d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
   }
   pDialog.addEventListener('close', () => {
@@ -795,6 +940,8 @@
     renderFeed();
     syncSaveViewBtn();
     renderDetail();
+    renderDishes();
+    renderDishView();
   }
 
   async function loadKV() {
@@ -829,6 +976,9 @@
         if (what === 'all' || what === 'kv') jobs.push(loadKV());
         if (what === 'all' || what === 'catches' || what === 'reactions') {
           jobs.push(store.listReactions().then((rows) => { reactions = rows; }));
+        }
+        if (what === 'all' || what === 'catches' || what === 'dishes') {
+          jobs.push(store.listDishes().then((rows) => { dishes = rows; }));
         }
         if (what === 'all' || what === 'catches' || what === 'comments') {
           jobs.push(store.listComments().then((rows) => { comments = rows; }));

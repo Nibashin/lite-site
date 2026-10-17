@@ -11,6 +11,7 @@
     demoKv: 'tateyama-demo-kv',
     demoReactions: 'tateyama-demo-reactions',
     demoComments: 'tateyama-demo-comments',
+    demoDishes: 'tateyama-demo-dishes',
     mine: 'tateyama-my-ids',
     me: 'tateyama-me',
     legacyAngler: 'tateyama-angler',
@@ -232,6 +233,20 @@
         return i < 0;
       },
       async listComments() { return lsGet(LS.demoComments, []); },
+      async listDishes() { return lsGet(LS.demoDishes, []); },
+      async addDish(entry, photo, name) {
+        const all = lsGet(LS.demoDishes, []);
+        const row = { ...entry, id: uuid(), cook: name, created_at: new Date().toISOString(), photo_url: null };
+        if (photo) row.photo_url = await blobToDataUrl(await resizeImage(photo, 720, 0.7));
+        all.push(row);
+        save(LS.demoDishes, all);
+        emit('dishes');
+        return row;
+      },
+      async removeDish(id, name) {
+        save(LS.demoDishes, lsGet(LS.demoDishes, []).filter((d) => !(d.id === id && d.cook === name)));
+        emit('dishes');
+      },
       async addComment(catchId, body, name) {
         const all = lsGet(LS.demoComments, []);
         const row = { id: uuid(), catch_id: catchId, name, body, created_at: new Date().toISOString() };
@@ -259,6 +274,7 @@
           if (e.key === LS.demoKv) fn('kv');
           if (e.key === LS.demoReactions) fn('reactions');
           if (e.key === LS.demoComments) fn('comments');
+          if (e.key === LS.demoDishes) fn('dishes');
         });
       },
     };
@@ -324,6 +340,23 @@
         if (error) throw error;
         return data;
       },
+      async listDishes() {
+        const { data, error } = await sb.from('dishes').select('*').order('created_at', { ascending: true });
+        if (error) { console.warn('dishes:', error.message); return []; }
+        return data.map((d) => ({ ...d, photo_url: pub(d.photo_path) }));
+      },
+      async addDish(entry, photo, name) {
+        const photoPath = photo ? await upload('dishes', await resizeImage(photo, 1600, 0.82)) : null;
+        const { data, error } = await sb.rpc('add_dish', {
+          p_name: name, p_title: entry.title, p_catch_id: entry.catch_id, p_memo: entry.memo, p_photo_path: photoPath,
+        });
+        if (error) throw error;
+        return { ...data, photo_url: pub(data.photo_path) };
+      },
+      async removeDish(id, name) {
+        const { error } = await sb.rpc('delete_dish', { p_name: name, p_id: id });
+        if (error) throw error;
+      },
       async listComments() {
         const { data, error } = await sb.from('comments').select('*').order('created_at', { ascending: true });
         if (error) { console.warn('comments:', error.message); return []; }
@@ -349,7 +382,7 @@
       },
       subscribe(fn, onStatus) {
         const ch = sb.channel('tateyama-live');
-        for (const table of ['catches', 'profiles', 'kv', 'reactions', 'comments']) {
+        for (const table of ['catches', 'profiles', 'kv', 'reactions', 'comments', 'dishes']) {
           ch.on('postgres_changes', { event: '*', schema: 'public', table }, () => fn(table));
         }
         ch.subscribe((status) => onStatus && onStatus(status === 'SUBSCRIBED'));

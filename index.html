@@ -16,6 +16,7 @@
 <body>
   <nav class="topnav">
     <a href="./" aria-current="page">釣果ボード</a>
+    <a href="#cook">料理</a>
     <a href="schedule.html">スケジュール</a>
     <button type="button" class="me-chip" id="me-chip"></button>
   </nav>
@@ -70,6 +71,15 @@
         </select>
       </div>
       <ol class="feed" id="feed"></ol>
+    </section>
+
+    <section class="block cook-block" id="cook" aria-labelledby="cook-title">
+      <div class="block-head">
+        <h2 id="cook-title">料理</h2>
+        <button type="button" class="link-btn" id="dish-add">＋ 料理を記録</button>
+      </div>
+      <p class="hint cook-lead">持って帰った魚、どうやって食べた？</p>
+      <ol class="dish-grid" id="dish-grid"></ol>
     </section>
   </main>
 
@@ -158,6 +168,51 @@
 
       <p class="form-error" id="p-error" role="alert"></p>
       <button type="submit" class="submit" id="p-submit">これでOK</button>
+    </form>
+  </dialog>
+
+  <!-- 料理の記録 -->
+  <dialog class="sheet" id="dish-dialog" aria-labelledby="dish-form-title">
+    <form id="dish-form" novalidate>
+      <div class="sheet-head">
+        <h3 id="dish-form-title">料理を記録</h3>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      </div>
+      <div class="who-row"><span class="who" id="dish-who"></span></div>
+      <label class="field">
+        <span class="label">料理名</span>
+        <input type="text" id="d-title" maxlength="40" list="dish-names" placeholder="アオリイカの刺身">
+        <datalist id="dish-names"></datalist>
+      </label>
+      <label class="field">
+        <span class="label">使った魚 <small>だれの釣果か</small></span>
+        <select id="d-catch" class="select-full"></select>
+      </label>
+      <div class="field">
+        <span class="label">写真</span>
+        <label class="photo-drop">
+          <input type="file" accept="image/*" id="d-photo">
+          <img id="d-photo-preview" alt="" hidden>
+          <span id="d-photo-hint">タップして写真をえらぶ</span>
+        </label>
+      </div>
+      <label class="field">
+        <span class="label">ひとこと <small>味・作り方など</small></span>
+        <input type="text" id="d-memo" maxlength="300" placeholder="ねっとり甘い。醤油より塩">
+      </label>
+      <p class="form-error" id="d-error" role="alert"></p>
+      <button type="submit" class="submit" id="d-submit">記録する</button>
+    </form>
+  </dialog>
+
+  <!-- 料理を見る -->
+  <dialog class="sheet" id="dish-view" aria-labelledby="dish-view-title">
+    <form method="dialog" novalidate>
+      <div class="sheet-head">
+        <h3 id="dish-view-title">料理</h3>
+        <button type="button" class="icon-btn" data-close aria-label="閉じる">×</button>
+      </div>
+      <div id="dish-view-body"></div>
     </form>
   </dialog>
 

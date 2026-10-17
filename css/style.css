@@ -81,11 +81,12 @@ h1, h2, h3 { margin: 0; }
 @media (min-width: 960px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) 340px;
-    grid-template-areas: "spots ranking" "feed ranking";
+    grid-template-areas: "spots ranking" "feed ranking" "cook ranking";
     align-items: start; column-gap: 40px;
   }
   .spots { grid-area: spots; }
   .feed-block { grid-area: feed; }
+  .cook-block { grid-area: cook; }
   .ranking { grid-area: ranking; position: sticky; top: 18px; }
 }
 .block { min-width: 0; }
@@ -562,3 +563,32 @@ body.is-picking .fab, body.is-picking .rank-bar { display: none !important; }
   display: block; width: 100%; margin-top: 8px; border: 1px solid var(--rule); background: transparent; border-radius: 4px;
   padding: 7px 8px; font-size: 13px; font-weight: 700; color: var(--ink);
 }
+
+/* ---------- 料理 ---------- */
+.cook-lead { margin: -6px 0 12px; }
+.dish-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+@media (min-width: 720px) { .dish-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.dish-grid li:first-child:not(.dish-empty) { grid-column: 1 / -1; }
+.dish-tile { width: 100%; padding: 0; border: 0; background: none; text-align: left; display: grid; gap: 4px; }
+.dish-tile > img, .dish-tile > .dish-noimg { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 3px; background: var(--sea-2); }
+.dish-grid li:first-child .dish-tile > img, .dish-grid li:first-child .dish-tile > .dish-noimg { aspect-ratio: 4 / 3; }
+.dish-noimg { display: grid; place-items: center; }
+.dish-noimg .fish-ico { width: 34%; height: 34%; opacity: .7; }
+.dish-title { font-weight: 900; font-size: 15px; line-height: 1.35; }
+.dish-by { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.dish-empty { grid-column: 1 / -1; color: var(--ink-3); font-size: 14px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.cook-block .link-btn { font-size: 15px; }
+
+.select-full { width: 100%; background: var(--sea); border: 1px solid var(--rule); border-radius: 4px; padding: 11px 10px; font-size: 16px; }
+.dish-cook { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.dish-from, .dish-row {
+  width: 100%; border: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: none; text-align: left;
+  display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 0;
+}
+.dish-from > img, .dish-from > .dish-noimg, .dish-row > img, .dish-row > .dish-noimg { width: 56px; height: 56px; border-radius: 3px; object-fit: cover; background: var(--sea); }
+.dish-from span, .dish-row span { display: grid; gap: 1px; }
+.dish-from small, .dish-row small { font-size: 12px; color: var(--ink-3); }
+.dish-from b, .dish-row b { font-size: 15px; }
+.dish-row + .dish-row { border-top: 0; }
+.detail-dishes { display: grid; gap: 8px; }
+.detail-dishes .add-btn { margin-top: 2px; }
